@@ -32,7 +32,7 @@ License Information
 
 This product is _**open source**_!
 
-The **code** is released under the GPL v3 license. See the included LICENSE.md for more information.
+The **code** is released under the CERN Open Hardware license. See the included LICENSE.txt for more information.
 
 Distributed as-is; no warranty is given.
 
