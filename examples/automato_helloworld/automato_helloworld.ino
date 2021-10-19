@@ -9,10 +9,7 @@
  *  chrono@interstitial.coop
  *  
  */
-#include "SPI.h"
-#include "Adafruit_GFX.h"
-#include "Adafruit_ILI9341.h"
-#include "SparkFun_SHTC3.h"
+
 #include <Automato.h>
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(PIN_LCD_CS, PIN_LCD_DC, MOSI, SCK, PIN_LCD_RST, MISO);

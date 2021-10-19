@@ -8,7 +8,12 @@ An Arduino library for the Automato sensor board
 #define AUTOMATO_SENSOR
 
 #include <Arduino.h>
+
 #include <Wire.h>
+#include "SPI.h"
+#include "Adafruit_GFX.h"
+#include "Adafruit_ILI9341.h"
+#include "SparkFun_SHTC3.h"
 
 class Automato
 {
