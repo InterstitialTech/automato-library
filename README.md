@@ -1,39 +1,21 @@
-Automato Sensor Board Library 
-========================================
+# Automato Sensor Board Library 
 
-[![Automato Sensor Board ](https://raw.githubusercontent.com/InterstitialTech/automato-sensor/assets/render_20210131.jpg)](https://github.com/InterstitialTech/automato-sensor)
-
-This Arduino library allows you to get a unique board ID. 
-
-Repository Contents
--------------------
-
-* **/examples** - Example sketches for the library (.ino). Run these from the Arduino IDE.
-* **/src** - Source files for the library (.cpp, .h).
-* **keywords.txt** - Keywords from this library that will be highlighted in the Arduino IDE.
-* **library.properties** - General library properties for the Arduino package manager.
-
-Documentation
---------------
-
-* **[Installing an Arduino Library Guide](https://learn.sparkfun.com/tutorials/installing-an-arduino-library)** - Basic information on how to install an Arduino library.
-
-Products that use this Library 
----------------------------------
-* [Automato Sensor Board](https://interstitial.coop/portfolio/automato)
+This library implements the Automato API via the "Automato" class interface.
 
 
-Version History
----------------
-**1.0.0** - Initial release
+## Dependencies
+* Adafruit GFX
+* Adafruit ILI9341
+* SparkFun SHTC3
 
-License Information
--------------------
+## Manual Installation
+In your Arduino directory:
+```
+git clone https://github.com/InterstitialTech/automato-library.git
+```
 
-This product is _**open source**_!
+## License Information
 
-The **code** is released under the CERN Open Hardware license. See the included LICENSE.txt for more information.
+This library is released under the CERN Open Hardware license (weakly
+reciprocal). See the included LICENSE.txt for more information.
 
-Distributed as-is; no warranty is given.
-
-\- Your friends at Automato.
