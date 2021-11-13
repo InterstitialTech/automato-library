@@ -13,14 +13,6 @@ RH_RF95 rf95(PIN_LORA_CS, PIN_LORA_IRQ); // Slave select, interrupt pin for Auto
 
 msgbuf mb;
 
-/*
-#define REGISTER_COUNT 100
-char registers[REGISTER_COUNT];
-#define REGISTER_LED 0
-
-#define REGISTER_LAYOUT_VERSION 1
-*/
-
 // see note in Automato.h
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
