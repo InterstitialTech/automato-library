@@ -8,9 +8,7 @@ An Arduino library for the Automato sensor board
 #include <Arduino.h>
 
 #include <Wire.h>
-<<<<<<< HEAD
 #include <AutomatoMsg.h>
-=======
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
