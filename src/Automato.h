@@ -8,6 +8,7 @@ An Arduino library for the Automato sensor board
 #include <Arduino.h>
 
 #include <Wire.h>
+#include <AutomatoMsg.h>
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
@@ -28,7 +29,7 @@ class Automato {
 
     public:
         Automato();
-        void init();
+        void init(float frequency = 915.0);
 
         void clearScreen(void);
 
@@ -38,6 +39,18 @@ class Automato {
 
         static uint64_t macAddress();
 
+        // remote control functions.
+        bool remotePinMode(uint64_t destination_mac, uint8_t pin, uint8_t mode);
+        bool remoteDigitalWrite(uint64_t destination_mac, uint8_t pin, uint8_t value);
+        bool remoteDigitalRead(uint64_t destination_mac, uint8_t pin, uint8_t *result);
+
+        // receive and handle remote control messages.
+        void doRemoteControl();
+
+        // lower level message sending and receiving.
+        bool sendMessage(message &m);
+        bool receiveMessage(msgbuf &mb);
+        void handleRcMessage(msgbuf &mb);
 };
 
 #endif /* AUTOMATO_SENSOR */
