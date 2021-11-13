@@ -18,26 +18,23 @@ protected:
 public:
 	Automato(); // Constructor
 
-	// Automato_Status_TypeDef begin(TwoWire &wirePort = Wire);									   // Initializes the sensor
 	static uint64_t macAddress();
 
-  // initialize the register map here
-  void init();
+  // initialize automato networking.
+  void init(float frequency = 915.0);
 
-  void sendMessage();
-  // probably called within a block of "if (automato.messageAvailable()) ..."
-  void receiveMessage();
-  // which parses the message and dispatches the writes, or else responds with a register read. probably a write command should solicit an "ACK/NAK" response, which is just another message type
-  void handleMessage();
+  // remote control functions.
+  bool remotePinMode(uint64_t destination_mac, uint8_t pin, uint8_t mode);
+  bool remoteDigitalWrite(uint64_t destination_mac, uint8_t pin, uint8_t value);
+  bool remoteDigitalRead(uint64_t destination_mac, uint8_t pin, uint8_t *result);
 
-  bool remotePinMode(uint32_t address, uint8_t pin, uint8_t mode);
-  bool remoteDigitalWrite(uint32_t address, uint8_t pin, uint8_t value);
-  bool remoteDigitalRead(uint32_t address, uint8_t pin, uint8_t *result);
-
-  void receiveMessage(msgbuf &mb);
-  void processMessage(msgbuf &mb);
-
+  // receive and handle remote control messages.
   void doRemoteControl();
+
+  // lower level message sending and receiving.
+  bool sendMessage(message &m);
+  bool receiveMessage(msgbuf &mb);
+  void handleRcMessage(msgbuf &mb);
 };
 
 #endif /* AUTOMATO_SENSOR */

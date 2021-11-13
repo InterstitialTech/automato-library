@@ -9,74 +9,175 @@ An Arduino library for the Automato sensor board
 #include <RH_RF95.h>
 #include <AutomatoMsg.h>
 
+RH_RF95 rf95(PIN_LORA_CS, PIN_LORA_IRQ); // Slave select, interrupt pin for Automato Sensor Module.
+
+msgbuf mb;
+
+/*
+#define REGISTER_COUNT 100
+char registers[REGISTER_COUNT];
+#define REGISTER_LED 0
+
+#define REGISTER_LAYOUT_VERSION 1
+*/
+
+Automato::Automato()
+{
+}
+
 uint64_t Automato::macAddress() 
 {
   return ESP.getEfuseMac();
 }
 
-void setupMessage(message &m, 
-  uint64_t frommac,
-  uint64_t tomac,
-  char type,
-  int  address,
-  int  length,
-  int  payload) 
+void Automato::init(float frequency)
 {
-  memcpy((char*)m.frommac, (const char*)&frommac, 6);
-  memcpy((char*)m.tomac, (const char*)&tomac, 6);
-  m.type = type;
-  m.address = address;
-  m.length = length;
-  m.payload = payload;
+  Serial.println("Initializing LoRa"); 
+  if (!rf95.init())
+    Serial.println("init failed");  
+
+  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
+  // specify by country?
+  rf95.setFrequency(915.0);
 }
 
-void printMessage(message &m) 
+bool Automato::remotePinMode(uint64_t destination_mac, uint8_t pin, uint8_t mode)
 {
-  Serial.println("message");
+  setupMessage(mb.msg, macAddress(), destination_mac, mt_pinmode, pin, 1, mode);
+  sendMessage(mb.msg);
+}
 
-  Serial.print("frommac: ");
-  uint64_t mac = 0;
-  memcpy(((char*)&mac), &m.frommac, 6); 
-  Serial.println(mac);
+bool Automato::remoteDigitalWrite(uint64_t destination_mac, uint8_t pin, uint8_t value)
+{
+  setupMessage(mb.msg, macAddress(), destination_mac, mt_write, pin, 1, value);
+  sendMessage(mb.msg);
+}
 
-  Serial.print("tomac: ");
-  mac = 0;
-  memcpy(((char*)&mac), &m.tomac, 6); 
-  Serial.println(mac);
+bool Automato::remoteDigitalRead(uint64_t destination_mac, uint8_t pin, uint8_t *result)
+{
+  setupMessage(mb.msg, macAddress(), destination_mac, mt_read, pin, 1, 0);
+  sendMessage(mb.msg);
+}
 
-  Serial.print("type: ");
-  switch ((int)m.type) {
-    case mt_read: 
-      Serial.println("mt_read");
-      break;
-    case mt_write: 
-      Serial.println("mt_write");
-      break;
-    case mt_ack: 
-      Serial.println("mt_ack");
-      break;
-    default:
-      Serial.print("unknown message type: ");
-      Serial.println((int)m.type);
-      break;
+bool Automato::sendMessage(message &m)
+{
+  rf95.send((uint8_t*)&m, sizeof(message));
+  rf95.waitPacketSent();
+  receiveMessage(mb);
+  return succeeded(mb.msg);
+}
+
+bool Automato::receiveMessage(msgbuf &mb)
+{
+  if (rf95.waitAvailableTimeout(3000))
+  { 
+    // is there a message for us?
+    uint8_t len = sizeof(mb.buf);
+    return rf95.recv(mb.buf, &len);
   }
-
-  Serial.print("address: ");
-  Serial.println(m.address);
-  Serial.print("payload: ");
-  Serial.println(m.payload);
+  else
+    return false;
 }
 
 
-bool Automato::remotePinMode(uint32_t address, uint8_t pin, uint8_t mode)
+/*bool Automato::handleReplyMessage(msgbuf &mb)
 {
+  if (rf95.waitAvailableTimeout(3000))
+  { 
+    // Should be a reply message for us now   
+    if (rf95.recv(mb.buf, &len))
+    {
+      // what happened?  should be an ack.
+      switch (mb.msg.type) 
+      {
+        case mt_ack:
+          switch (mb.msg.payload) 
+          {
+            case ac_success:
+              Serial.println("ac_success");
+              return true;
+            case ac_invalid_address:
+              return false;
+            case ac_invalid_message_type:
+              return false;
+            default:
+              return false;
+          }
+          break;
+        default:
+          return false;
+      }
+      on = !on;
+    }
+    else
+    {
+      // Serial.println("recv failed");
+      return false;
+    }
+  }
+  else
+  {
+    // Serial.println("No reply, is rf95_server running?");
+    return false;
+  }
+}*/
 
-}
-bool Automato::remoteDigitalWrite(uint32_t address, uint8_t pin, uint8_t value)
+void Automato::handleRcMessage(msgbuf &mb)
 {
-
+  uint64_t tomac = 0;
+  memcpy(((char*)&tomac), &mb.msg.tomac, 6); 
+  
+  if (tomac == Automato::macAddress()) 
+  {
+    switch (mb.msg.type) {
+      case mt_write:
+        if (0 <= mb.msg.address && mb.msg.address < 40) {
+          if (mb.msg.payload == 0) {
+            digitalWrite(mb.msg.address, LOW);
+            // indicate success
+            mb.msg.type = mt_ack;
+            mb.msg.payload = ac_success;
+            rf95.send((const uint8_t*)&mb.msg, sizeof(message));
+            rf95.waitPacketSent();
+          } else if (mb.msg.payload == 1) {
+            digitalWrite(mb.msg.address, HIGH);
+            // indicate success
+            mb.msg.type = mt_ack;
+            mb.msg.payload = ac_success;
+            rf95.send((const uint8_t*)&mb.msg, sizeof(message));
+            rf95.waitPacketSent();
+          }
+        } else {
+          // failed, invalid address.
+          mb.msg.type = mt_ack;
+          mb.msg.payload = ac_invalid_address;
+          rf95.send((const uint8_t*)&mb.msg, sizeof(message));
+          rf95.waitPacketSent();
+        };
+        break;
+      default:
+        // failed, unsupported message type.
+        mb.msg.type = mt_ack;
+        mb.msg.payload = ac_invalid_message_type;
+        rf95.send((const uint8_t*)&mb.msg, sizeof(message));
+        rf95.waitPacketSent();
+        break;
+    };
+  }
+  else {
+    Serial.print("ignoring message for ");
+    Serial.println(tomac);
+    Serial.print("because my mac is ");
+    Serial.println(Automato::macAddress());
+  }
 }
-bool Automato::remoteDigitalRead(uint32_t address, uint8_t pin, uint8_t *result)
+
+// receives and handles remote control messages.
+void Automato::doRemoteControl()
 {
-
+  if (receiveMessage(mb)) {
+    handleRcMessage(mb);
+  }
 }
+
+

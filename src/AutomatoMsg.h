@@ -1,12 +1,14 @@
 #ifndef Automatomsg_hh_INCLUDED
 #define Automatomsg_hh_INCLUDED
 
+#include <Arduino.h>
+#include <Wire.h>
 #include <RH_RF95.h>
 
 enum message_type {
   mt_read,
   mt_write,
-  mt_mode,
+  mt_pinmode,
   mt_ack
 };
 
@@ -41,6 +43,8 @@ void setupMessage(message &m,
   int  address,
   int  length,
   int  payload);
+
+bool succeeded(message &m);
 
 #endif // Automatomsg_hh_INCLUDED
 
