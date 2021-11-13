@@ -21,25 +21,68 @@ char registers[REGISTER_COUNT];
 #define REGISTER_LAYOUT_VERSION 1
 */
 
+// see note in Automato.h
+Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
+
 Automato::Automato()
 {
-}
-
-uint64_t Automato::macAddress() 
-{
-  return ESP.getEfuseMac();
+// default constructor
 }
 
 void Automato::init(float frequency)
 {
-  Serial.println("Initializing LoRa"); 
-  if (!rf95.init())
-    Serial.println("init failed");  
+    rf95.init();
 
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-  // specify by country?
-  rf95.setFrequency(915.0);
+    // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
+    // specify by country?
+    rf95.setFrequency(915.0);
+
+    // user LED
+    pinMode(PIN_LED, OUTPUT);
+
+    // LCD
+    pinMode(PIN_LED_LCD, OUTPUT);
+    digitalWrite(PIN_LED_LCD, HIGH);
+    screen.begin();
+    screen.setRotation(1);
+
+    // SHTC3
+    Wire.begin();
+    shtc3.begin();
+
 }
+
+void Automato::clearScreen(void)
+{
+    screen.fillScreen(ILI9341_BLACK);
+    screen.setTextColor(ILI9341_GREEN);
+    screen.setTextSize(2);
+    screen.setCursor(0,0);
+}
+
+void Automato::readTempHumidity(void)
+{
+    shtc3.update();
+    temperature = shtc3.toDegF();
+    humidity = shtc3.toPercent();
+}
+
+float Automato::getTemperature(void)
+{
+    return temperature;
+}
+
+float Automato::getHumidity(void)
+{
+    return humidity;
+}
+
+uint64_t Automato::macAddress(void) 
+{
+  return ESP.getEfuseMac();
+}
+
+
 
 bool Automato::remotePinMode(uint64_t destination_mac, uint8_t pin, uint8_t mode)
 {
@@ -79,48 +122,6 @@ bool Automato::receiveMessage(msgbuf &mb)
     return false;
 }
 
-
-/*bool Automato::handleReplyMessage(msgbuf &mb)
-{
-  if (rf95.waitAvailableTimeout(3000))
-  { 
-    // Should be a reply message for us now   
-    if (rf95.recv(mb.buf, &len))
-    {
-      // what happened?  should be an ack.
-      switch (mb.msg.type) 
-      {
-        case mt_ack:
-          switch (mb.msg.payload) 
-          {
-            case ac_success:
-              Serial.println("ac_success");
-              return true;
-            case ac_invalid_address:
-              return false;
-            case ac_invalid_message_type:
-              return false;
-            default:
-              return false;
-          }
-          break;
-        default:
-          return false;
-      }
-      on = !on;
-    }
-    else
-    {
-      // Serial.println("recv failed");
-      return false;
-    }
-  }
-  else
-  {
-    // Serial.println("No reply, is rf95_server running?");
-    return false;
-  }
-}*/
 
 void Automato::handleRcMessage(msgbuf &mb)
 {
