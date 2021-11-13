@@ -1,13 +1,21 @@
-#ifndef registermsg_hh_INCLUDED
-#define registermsg_hh_INCLUDED
+#ifndef Automatomsg_hh_INCLUDED
+#define Automatomsg_hh_INCLUDED
+
+#include <RH_RF95.h>
 
 enum message_type {
   mt_read,
   mt_write,
+  mt_mode,
   mt_ack
 };
 
-// MSG_LEN | SRC_ID | DEST_ID | MSG_TYPE | MSG_PAYLOAD
+enum ack_code {
+  ac_success,
+  ac_invalid_message_type,
+  ac_invalid_address
+};
+
 struct message {
   char frommac[6];
   char tomac[6];
@@ -25,6 +33,7 @@ struct msgbuf {
 };
 
 void printMessage(message &m); 
+
 void setupMessage(message &m, 
   uint64_t frommac,
   uint64_t tomac,
@@ -33,5 +42,5 @@ void setupMessage(message &m,
   int  length,
   int  payload);
 
-#endif // registermsg_hh_INCLUDED
+#endif // Automatomsg_hh_INCLUDED
 

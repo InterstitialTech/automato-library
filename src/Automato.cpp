@@ -7,7 +7,7 @@ An Arduino library for the Automato sensor board
 #include <Automato.h>
 #include <Esp.h>
 #include <RH_RF95.h>
-#include <registermsg.hh>
+#include <AutomatoMsg.h>
 
 uint64_t Automato::macAddress() 
 {
@@ -67,3 +67,16 @@ void printMessage(message &m)
   Serial.println(m.payload);
 }
 
+
+bool Automato::remotePinMode(uint32_t address, uint8_t pin, uint8_t mode)
+{
+
+}
+bool Automato::remoteDigitalWrite(uint32_t address, uint8_t pin, uint8_t value)
+{
+
+}
+bool Automato::remoteDigitalRead(uint32_t address, uint8_t pin, uint8_t *result)
+{
+
+}
