@@ -2,49 +2,109 @@
 #define Automatomsg_hh_INCLUDED
 
 #include <Arduino.h>
-#include <Wire.h>
+// #include <Wire.h>
 #include <RH_RF95.h>
 
-enum message_type {
-  mt_read,
-  mt_write,
-  mt_pinmode,
-  mt_ack
+// enum message_type {
+//   mt_request,
+//   mt_reply
+// };
+
+enum FailCode {
+  fc_invalid_message_type,
+  fc_invalid_pin_number,
 };
 
-enum ack_code {
-  ac_success,
-  ac_invalid_message_type,
-  ac_invalid_address
+enum PayloadType {
+  pt_ack,
+  pt_fail,
+  pt_readpin,
+  pt_readpinreply,
+  pt_writepin
 };
 
-struct message {
-  char frommac[6];
-  char tomac[6];
-  char type;
-  int  address;
-  int  length;
-  int  payload;
+struct Pinval {
+  uint8_t pin;
+  uint8_t state;
 };
+
+// pt_pinmode,
+// struct Ack {
+//   union { 
+//     Pinval pinval;
+//     uint8_t address;
+//   };
+// }
+
+// struct Ack {
+//   ack_code ac;
+//   Data 
+
+struct Data {
+  union {
+    Pinval pinval;
+    uint8_t failcode;
+    uint8_t pin;
+  };
+};
+
+struct Payload {
+  PayloadType type;
+  Data data; 
+};
+
+
+// used for non-mesh, non-routed comms.
+struct Message {
+  uint8_t fromid;
+  uint8_t toid;
+  Payload data;
+};
+
+// write pin
+// write analog pin
+// write byte
+// write int
+// write array
+// write named int
+// write named array
+// 
+// read pin
+// read analog pin
+// read byte
+// read int
+// read array
+// read named int
+// read named array
+// 
 
 struct msgbuf { 
   union {
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-    message msg;
+    Message msg;				// as Message for router-less
+    Payload payload;    // as Payload for RHMesh
   };
 };
 
-void printMessage(message &m); 
+uint8_t payloadSize(Payload &p);
 
-void setupMessage(message &m, 
-  uint64_t frommac,
-  uint64_t tomac,
-  char type,
-  int  address,
-  int  length,
-  int  payload);
+void printPayload(Payload &p); 
 
-bool succeeded(message &m);
+void setup_ack(Payload &p); 
+void setup_fail(Payload &p, FailCode fc); 
+void setup_readpin(Payload &p, uint8_t pin);
+void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state); 
+void setup_writepin(Payload &p, uint8_t pin, uint8_t state); 
+
+// void setupMessage(message &m, 
+//   uint8_t fromid,
+//   uint8_t toid,
+//   char type,
+//   int  address,
+//   int  length,
+//   int  payload);
+
+bool succeeded(Payload &p);
 
 #endif // Automatomsg_hh_INCLUDED
 
