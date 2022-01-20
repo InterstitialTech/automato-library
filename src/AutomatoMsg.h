@@ -20,12 +20,34 @@ enum PayloadType {
   pt_fail,
   pt_readpin,
   pt_readpinreply,
-  pt_writepin
+  pt_writepin,
+  pt_readmem,
+  pt_writemem
 };
 
 struct Pinval {
   uint8_t pin;
   uint8_t state;
+};
+
+struct Readmem {
+  uint16_t addr;
+  uint8_t len;
+};
+
+#define MAX_MEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(PayloadType)
+
+struct ReadmemReply {
+  uint16_t addr;
+  uint8_t len;
+  uint8_t data[MAX_MEM];
+};
+
+
+struct Writemem {
+  uint16_t addr;
+  uint8_t len;
+  uint8_t data[MAX_MEM];
 };
 
 // pt_pinmode,

@@ -32,7 +32,7 @@ class Automato {
     protected:
 
     public:
-        Automato(uint8_t networkid = -1);
+        Automato(uint8_t networkid);
         void init(float frequency = 915.0);
 
         void clearScreen(void);
