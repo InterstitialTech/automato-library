@@ -201,13 +201,6 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
 
 void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
 {
-// {
-//   pt_ack,
-//   pt_fail,
-//   pt_readpin,
-//   pt_readpinreply,
-//   pt_writepin
-// }
   Serial.println("handleRcMessage");
   printPayload(mb.payload);
   switch (mb.payload.type) {
@@ -252,7 +245,9 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         // build reply and send.
-        setup_readmemreply(mb.payload, mb.payload.data.readmem.length, databuf + mb.payload.data.readmem.address);
+        setup_readmemreply(mb.payload,
+                           mb.payload.data.readmem.length,
+                           databuf + mb.payload.data.readmem.address);
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;

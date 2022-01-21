@@ -46,7 +46,8 @@ bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
   // memory range should be checked on the other end too.  TODO: remove?
   if (length <= MAX_READMEM)
   {
-    memcpy((void*)&p.data, mem, length);
+    p.data.readmemreply.length = length;
+    memcpy((void*)&p.data.readmemreply.data, mem, length);
     return true;
   }
   else 
@@ -69,23 +70,6 @@ bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
     return false;
 } 
 
-
-// void setupMessage(Message &m, 
-//   uint8_t frommac,
-//   uint8_t tomac,
-//   char type,
-//   int  address,
-//   int  length,
-//   int  payload) 
-// {
-//   // memcpy((char*)m.frommac, (const char*)&frommac, 6);
-//   // memcpy((char*)m.tomac, (const char*)&tomac, 6);
-//   m.type = type;
-//   m.address = address;
-//   m.length = length;
-//   m.payload = payload;
-// }
-
 uint8_t payloadSize(Payload &p) {
   switch (p.type) {
     case pt_ack: 
@@ -101,7 +85,7 @@ uint8_t payloadSize(Payload &p) {
     case pt_readmem:
         return sizeof(PayloadType) + sizeof(Readmem);
     case pt_readmemreply:
-      return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.data.readmemreply.length; 
+      return sizeof(PayloadType) + sizeof(uint8_t) + p.data.readmemreply.length; 
     case pt_writemem:
       return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.data.readmemreply.length; 
     default: 
@@ -112,16 +96,6 @@ uint8_t payloadSize(Payload &p) {
 void printPayload(Payload &p)
 {
   Serial.println("message payload");
-
-  // Serial.print("frommac: ");
-  // uint64_t mac = 0;
-  // memcpy(((char*)&mac), &m.frommac, 6); 
-  // Serial.println(mac);
-
-  // Serial.print("tomac: ");
-  // mac = 0;
-  // memcpy(((char*)&mac), &m.tomac, 6); 
-  // Serial.println(mac);
 
   Serial.print("type: ");
   switch ((int)p.type) {
@@ -154,12 +128,22 @@ void printPayload(Payload &p)
       break;
     case pt_readmem:
       Serial.println("pt_readmem");
+      Serial.print("address");
+      Serial.println(p.data.readmem.address);
+      Serial.print("length");
+      Serial.println(p.data.readmem.length);
       break;
     case pt_readmemreply:
       Serial.println("pt_readmemreply");
+      Serial.print("length");
+      Serial.println(p.data.readmemreply.length);
       break;
     case pt_writemem:
       Serial.println("pt_writemem");
+      Serial.print("address");
+      Serial.println(p.data.writemem.address);
+      Serial.print("length");
+      Serial.println(p.data.writemem.length);
       break;
 
     default:
@@ -167,48 +151,4 @@ void printPayload(Payload &p)
       Serial.println((int)p.type);
       break;
   }
-
-  // Serial.print("address: ");
-  // Serial.println(m.address);
-  // Serial.print("payload: ");
-  // Serial.println(m.payload);
 }
-// void printMessage(message &m) 
-// {
-//   Serial.println("message");
-
-//   Serial.print("frommac: ");
-//   uint64_t mac = 0;
-//   memcpy(((char*)&mac), &m.frommac, 6); 
-//   Serial.println(mac);
-
-//   Serial.print("tomac: ");
-//   mac = 0;
-//   memcpy(((char*)&mac), &m.tomac, 6); 
-//   Serial.println(mac);
-
-//   Serial.print("type: ");
-//   switch ((int)m.type) {
-//     case mt_read: 
-//       Serial.println("mt_read");
-//       break;
-//     case mt_write: 
-//       Serial.println("mt_write");
-//       break;
-//     case mt_ack: 
-//       Serial.println("mt_ack");
-//       break;
-//     default:
-//       Serial.print("unknown message type: ");
-//       Serial.println((int)m.type);
-//       break;
-//   }
-
-//   Serial.print("address: ");
-//   Serial.println(m.address);
-//   Serial.print("payload: ");
-//   Serial.println(m.payload);
-// }
-
-
-
