@@ -119,12 +119,22 @@ void printPayload(Payload &p)
       break;
     case pt_readpin:
       Serial.println("pt_readpin");
+      Serial.print("pin: ");
+      Serial.println(p.data.pin);
       break;
     case pt_readpinreply:
       Serial.println("pt_readpinreply");
+      Serial.print("pin: ");
+      Serial.println(p.data.pinval.pin);
+      Serial.print("state: ");
+      Serial.println(p.data.pinval.state);
       break;
     case pt_writepin:
       Serial.println("pt_writepin");
+      Serial.print("pin: ");
+      Serial.println(p.data.pinval.pin);
+      Serial.print("state: ");
+      Serial.println(p.data.pinval.state);
       break;
     case pt_readmem:
       Serial.println("pt_readmem");
@@ -135,8 +145,13 @@ void printPayload(Payload &p)
       break;
     case pt_readmemreply:
       Serial.println("pt_readmemreply");
-      Serial.print("length");
+      Serial.print("length: ");
       Serial.println(p.data.readmemreply.length);
+      Serial.print("mem: ");
+      for (int i = 0; i < p.data.readmemreply.length; ++i) {
+        Serial.print(p.data.readmemreply.data[i], HEX);
+      }
+      Serial.println();
       break;
     case pt_writemem:
       Serial.println("pt_writemem");
@@ -144,6 +159,11 @@ void printPayload(Payload &p)
       Serial.println(p.data.writemem.address);
       Serial.print("length");
       Serial.println(p.data.writemem.length);
+      Serial.print("mem: ");
+      for (int i = 0; i < p.data.readmemreply.length; ++i) {
+        Serial.print(p.data.writemem.data[i], HEX);
+      }
+      Serial.println();
       break;
 
     default:
