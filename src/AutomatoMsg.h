@@ -13,6 +13,8 @@
 enum FailCode {
   fc_invalid_message_type,
   fc_invalid_pin_number,
+  fc_invalid_mem_address,
+  fc_invalid_mem_length,
 };
 
 enum PayloadType {
@@ -22,6 +24,7 @@ enum PayloadType {
   pt_readpinreply,
   pt_writepin,
   pt_readmem,
+  pt_readmemreply,
   pt_writemem
 };
 
@@ -31,23 +34,23 @@ struct Pinval {
 };
 
 struct Readmem {
-  uint16_t addr;
-  uint8_t len;
+  uint16_t address;
+  uint8_t length;
 };
 
-#define MAX_MEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(PayloadType)
+#define MAX_WRITEMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(PayloadType)
+#define MAX_READMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(PayloadType) - sizeof(uint8_t)
 
 struct ReadmemReply {
-  uint16_t addr;
-  uint8_t len;
-  uint8_t data[MAX_MEM];
+  uint8_t length;
+  uint8_t data[MAX_READMEM];
 };
 
 
 struct Writemem {
-  uint16_t addr;
-  uint8_t len;
-  uint8_t data[MAX_MEM];
+  uint16_t address;
+  uint8_t length;
+  uint8_t data[MAX_WRITEMEM];
 };
 
 // pt_pinmode,
@@ -65,6 +68,9 @@ struct Writemem {
 struct Data {
   union {
     Pinval pinval;
+    Readmem readmem;
+    ReadmemReply readmemreply;
+    Writemem writemem;
     uint8_t failcode;
     uint8_t pin;
   };
@@ -117,6 +123,10 @@ void setup_fail(Payload &p, FailCode fc);
 void setup_readpin(Payload &p, uint8_t pin);
 void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state); 
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state); 
+
+void setup_readmem(Payload &p, uint16_t address, uint8_t length);
+bool setup_readmemreply(Payload &p, uint8_t length, void* mem); 
+bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem); 
 
 // void setupMessage(message &m, 
 //   uint8_t fromid,

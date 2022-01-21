@@ -33,6 +33,43 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
   p.data.pinval.state = state;
 } 
 
+void setup_readmem(Payload &p, uint16_t address, uint8_t length)
+{
+  p.type = pt_readmem;
+  p.data.readmem.address = address;
+  p.data.readmem.length = length;
+}
+
+bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
+{
+  p.type = pt_readmemreply;
+  // memory range should be checked on the other end too.  TODO: remove?
+  if (length <= MAX_READMEM)
+  {
+    memcpy((void*)&p.data, mem, length);
+    return true;
+  }
+  else 
+    // invalid length.
+    return false;
+} 
+bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
+{
+  p.type = pt_writemem;
+  // memory range should be checked on the other end too.  TODO: remove?
+  if (length <= MAX_WRITEMEM)
+  {
+    p.data.writemem.address = address;
+    p.data.writemem.length = length;
+    memcpy((void*)&p.data.writemem.data, mem, length);
+    return true;
+  }
+  else 
+    // invalid length.
+    return false;
+} 
+
+
 // void setupMessage(Message &m, 
 //   uint8_t frommac,
 //   uint8_t tomac,
@@ -43,7 +80,6 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
 // {
 //   // memcpy((char*)m.frommac, (const char*)&frommac, 6);
 //   // memcpy((char*)m.tomac, (const char*)&tomac, 6);
-
 //   m.type = type;
 //   m.address = address;
 //   m.length = length;
@@ -62,12 +98,18 @@ uint8_t payloadSize(Payload &p) {
         return sizeof(PayloadType) + sizeof(Pinval);
     case pt_writepin: 
         return sizeof(PayloadType) + sizeof(Pinval);
+    case pt_readmem:
+        return sizeof(PayloadType) + sizeof(Readmem);
+    case pt_readmemreply:
+      return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.data.readmemreply.length; 
+    case pt_writemem:
+      return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.data.readmemreply.length; 
     default: 
         return 0;
   }
 }
 
-void printPayload(Payload &p) 
+void printPayload(Payload &p)
 {
   Serial.println("message payload");
 
@@ -87,7 +129,19 @@ void printPayload(Payload &p)
       Serial.println("pt_ack");
       break;
     case pt_fail:
-      Serial.println("pt_fail");
+      Serial.print("pt_fail: ");
+      switch (p.data.failcode) {
+        fc_invalid_message_type:
+          Serial.println("fc_invalid_message_type");
+          break;
+        fc_invalid_pin_number:
+          Serial.println("fc_invalid_pin_number");
+          break;
+        default:
+          Serial.print("unknown failcode: ");
+          Serial.println(p.data.failcode);
+          break;
+      }
       break;
     case pt_readpin:
       Serial.println("pt_readpin");
@@ -98,6 +152,16 @@ void printPayload(Payload &p)
     case pt_writepin:
       Serial.println("pt_writepin");
       break;
+    case pt_readmem:
+      Serial.println("pt_readmem");
+      break;
+    case pt_readmemreply:
+      Serial.println("pt_readmemreply");
+      break;
+    case pt_writemem:
+      Serial.println("pt_writemem");
+      break;
+
     default:
       Serial.print("unknown message type: ");
       Serial.println((int)p.type);
