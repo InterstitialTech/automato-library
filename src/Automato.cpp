@@ -127,9 +127,6 @@ bool Automato::remoteMemRead(uint8_t destination_id, uint16_t address, uint8_t l
     // TODO support not copying the val to a destination, if desired.  Needless
     // memcpy if you're not going to keep the value.
 
-    Serial.println("remoteMemRead reply:");
-    printPayload(mb.payload);
-
     if (mb.payload.type == pt_readmemreply) {
       memcpy(value, (void*)&mb.payload.data.readmemreply.data, length);
       return true;

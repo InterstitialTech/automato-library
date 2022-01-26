@@ -66,6 +66,10 @@ class Automato {
         bool receiveMessage(uint8_t &from_id, msgbuf &mb);
         void handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };
+
+#define REMOTE_MEMWRITE(automato, dest, struct, field, val) automato.remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct::field), (void*)val)
+#define REMOTE_MEMREAD(automato, dest, struct, field, val) automato.remoteMemRead(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct::field), (void*)val)
+
 // write pin
 // write analog pin
 // write byte
