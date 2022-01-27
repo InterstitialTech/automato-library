@@ -20,6 +20,7 @@ enum FailCode {
 enum PayloadType {
   pt_ack,
   pt_fail,
+  pt_pinmode,
   pt_readpin,
   pt_readpinreply,
   pt_writepin,
@@ -31,6 +32,11 @@ enum PayloadType {
 struct Pinval {
   uint8_t pin;
   uint8_t state;
+};
+
+struct Pinmode {
+  uint8_t pin;
+  uint8_t mode;
 };
 
 struct Readmem {
@@ -68,6 +74,7 @@ struct Writemem {
 struct Data {
   union {
     Pinval pinval;
+    Pinmode pinmode;
     Readmem readmem;
     ReadmemReply readmemreply;
     Writemem writemem;
@@ -120,6 +127,7 @@ void printPayload(Payload &p);
 
 void setup_ack(Payload &p); 
 void setup_fail(Payload &p, FailCode fc); 
+void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode); 
 void setup_readpin(Payload &p, uint8_t pin);
 void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state); 
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state); 

@@ -77,11 +77,11 @@ uint64_t Automato::macAddress(void)
     return ESP.getEfuseMac();
 }
 
-// bool Automato::remotePinMode(uint8_t destination_id, uint8_t pin, uint8_t mode)
-// {
-//   setupMessage(mb.msg, macAddress(), destination_id, mt_pinmode, pin, 1, mode);
-//   sendMessage(mb.msg);
-// }
+bool Automato::remotePinMode(uint8_t destination_id, uint8_t pin, uint8_t mode)
+{
+  setup_pinmode(mb.payload, pin, mode);
+  return sendPayload(destination_id, mb.payload);
+}
 
 bool Automato::remoteDigitalWrite(uint8_t destination_id, uint8_t pin, uint8_t value)
 {
@@ -153,6 +153,9 @@ bool Automato::remoteMemRead(uint8_t destination_id, uint16_t address, uint8_t l
 
 bool Automato::sendPayload(uint8_t destination_id, Payload &p)
 {
+  Serial.print("sending Payload: ");
+  printPayload(p);
+  
   if (rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), destination_id) == RH_ROUTER_ERROR_NONE) {
       uint8_t from_id;
 
@@ -161,13 +164,13 @@ bool Automato::sendPayload(uint8_t destination_id, Payload &p)
       // destination.
       if (receiveMessage(from_id, mb))
       {
-        Serial.println("sendPayload, receiveMessage: ");
+        Serial.println("sendPayload, reply: ");
         printPayload(mb.payload);
         return succeeded(mb.payload);
       }
       else 
       {
-        Serial.println("receiveMessage failed");
+        Serial.println("sendPayload; receiveMessage failed");
         return false;
       }
   }
@@ -201,6 +204,17 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
   Serial.println("handleRcMessage");
   printPayload(mb.payload);
   switch (mb.payload.type) {
+    case pt_pinmode:
+      if (0 <= mb.payload.data.pinmode.pin &&  mb.payload.data.pinmode.pin < 40) {
+        pinMode(mb.payload.data.pinmode.pin, mb.payload.data.pinmode.mode);
+        setup_ack(mb.payload);
+        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+      } else {
+        // failed, invalid address.
+        setup_fail(mb.payload, fc_invalid_pin_number);
+        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+      };
+      break;
     case pt_writepin:
       if (0 <= mb.payload.data.pinval.pin &&  mb.payload.data.pinval.pin < 40) {
         if (mb.payload.data.pinval.state == 0) {

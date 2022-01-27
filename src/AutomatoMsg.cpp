@@ -14,6 +14,12 @@ void setup_fail(Payload &p, FailCode fc)
   p.type = pt_fail;
   p.data.failcode = fc;
 } 
+void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode) 
+{
+  p.type = pt_pinmode;
+  p.data.pinmode.pin = pin;
+  p.data.pinmode.mode = mode;
+} 
 void setup_readpin(Payload &p, uint8_t pin) 
 {
   p.type = pt_readpin;
@@ -32,6 +38,7 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
   p.data.pinval.pin = pin;
   p.data.pinval.state = state;
 } 
+
 
 void setup_readmem(Payload &p, uint16_t address, uint8_t length)
 {
@@ -76,6 +83,8 @@ uint8_t payloadSize(Payload &p) {
         return sizeof(PayloadType);
     case pt_fail: 
         return sizeof(PayloadType);
+    case pt_pinmode: 
+        return sizeof(PayloadType) + sizeof(Pinmode);
     case pt_readpin: 
         return sizeof(PayloadType) + sizeof(Pinval);
     case pt_readpinreply: 
@@ -98,6 +107,9 @@ void printPayload(Payload &p)
   Serial.println("message payload");
 
   Serial.print("type: ");
+  Serial.print(p.type);
+  Serial.print(" ");
+
   switch ((int)p.type) {
     case pt_ack:
       Serial.println("pt_ack");
@@ -116,6 +128,13 @@ void printPayload(Payload &p)
           Serial.println(p.data.failcode);
           break;
       }
+      break;
+    case pt_pinmode:
+      Serial.println("pt_pinmode");
+      Serial.print("pin: ");
+      Serial.println(p.data.pinmode.pin);
+      Serial.print("mode: ");
+      Serial.println(p.data.pinmode.mode);
       break;
     case pt_readpin:
       Serial.println("pt_readpin");
