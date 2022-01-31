@@ -46,6 +46,7 @@ class Automato {
 
         static uint64_t macAddress();
 
+        // TODO rename destination_id -> network_id
         // remote control functions.
         // bool remotePinMode(uint8_t destination_id, uint8_t pin, uint8_t mode);
         bool remoteDigitalWrite(uint8_t destination_id, uint8_t pin, uint8_t value);
@@ -55,15 +56,16 @@ class Automato {
         bool remoteMemWrite(uint8_t destination_id, uint16_t address, uint8_t length, void *value);
         bool remoteMemRead(uint8_t destination_id, uint16_t address, uint8_t length, void *value);
 
+        bool remoteTemperature(uint8_t destination_id, float &temperature);
+        bool remoteHumidity(uint8_t destination_id, float &humidity);
+
+        bool remoteAutomatoInfo(uint8_t destination_id, RemoteInfo &info);
+
         // receive and handle remote control messages.
         void doRemoteControl();
 
         // lower level message sending and receiving.
         bool sendPayload(uint8_t destination_id, Payload &p);
-        // bool sendPayload(uint8_t destination_id, Payload &p);
-        // bool sendMessage(uint8_t destination_id, Message &m);
-        // bool receiveMessage(uint8_t &from_id, msgbuf &mb);
-        // void handleRcMessage(uint8_t &from_id, msgbuf &mb);
         bool receiveMessage(uint8_t &from_id, msgbuf &mb);
         void handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };

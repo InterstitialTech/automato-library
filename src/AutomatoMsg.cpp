@@ -1,5 +1,7 @@
 #include <AutomatoMsg.h>
 
+float protoVersion(0.1);
+
 bool succeeded(Payload &p)
 {
   return p.type != pt_fail;
@@ -77,26 +79,76 @@ bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
     return false;
 } 
 
+void setup_readinfo(Payload &p)
+{
+  p.type = pt_readinfo;
+}
+
+void setup_readinforeply(Payload &p,
+                           float protoversion,
+                           uint64_t macAddress,
+                           uint16_t datalen)
+{
+  p.type = pt_readinforeply;
+  p.data.remoteinfo.protoversion = protoversion;
+  p.data.remoteinfo.macAddress = macAddress;
+  p.data.remoteinfo.datalen = datalen;
+}
+
+void setup_readhumidity(Payload &p)
+{
+  p.type = pt_readhumidity;
+}
+
+void setup_readhumidityreply(Payload &p, float humidity)
+{
+  p.type = pt_readhumidityreply;
+  p.data.f = humidity;
+}
+
+void setup_readtemperature(Payload &p)
+{
+  p.type = pt_readtemperature;
+}
+
+void setup_readtemperaturereply(Payload &p, float temperature)
+{
+  p.type = pt_readtemperaturereply;
+  p.data.f = temperature;
+}
+
 uint8_t payloadSize(Payload &p) {
   switch (p.type) {
     case pt_ack: 
-        return sizeof(PayloadType);
+      return sizeof(PayloadType);
     case pt_fail: 
-        return sizeof(PayloadType);
+      return sizeof(PayloadType);
     case pt_pinmode: 
-        return sizeof(PayloadType) + sizeof(Pinmode);
+      return sizeof(PayloadType) + sizeof(Pinmode);
     case pt_readpin: 
-        return sizeof(PayloadType) + sizeof(Pinval);
+      return sizeof(PayloadType) + sizeof(Pinval);
     case pt_readpinreply: 
-        return sizeof(PayloadType) + sizeof(Pinval);
+      return sizeof(PayloadType) + sizeof(Pinval);
     case pt_writepin: 
-        return sizeof(PayloadType) + sizeof(Pinval);
+      return sizeof(PayloadType) + sizeof(Pinval);
     case pt_readmem:
-        return sizeof(PayloadType) + sizeof(Readmem);
+      return sizeof(PayloadType) + sizeof(Readmem);
     case pt_readmemreply:
       return sizeof(PayloadType) + sizeof(uint8_t) + p.data.readmemreply.length; 
     case pt_writemem:
       return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.data.readmemreply.length; 
+    case pt_readinfo:
+      return sizeof(PayloadType);
+    case pt_readinforeply:
+      return sizeof(PayloadType)+ sizeof(RemoteInfo); 
+    case pt_readhumidity:
+      return sizeof(PayloadType);
+    case pt_readhumidityreply:
+      return sizeof(PayloadType) + sizeof(float);
+    case pt_readtemperature:
+      return sizeof(PayloadType);
+    case pt_readtemperaturereply:
+      return sizeof(PayloadType) + sizeof(float);
     default: 
         return 0;
   }
@@ -184,7 +236,34 @@ void printPayload(Payload &p)
       }
       Serial.println();
       break;
-
+    case pt_readinfo:
+      Serial.println("pt_readinfo");
+      break;
+    case pt_readinforeply:
+      Serial.println("pt_readinforeply");
+      Serial.print("protoversion:");
+      Serial.println(p.data.remoteinfo.protoversion);
+      Serial.print("macAddress:");
+      Serial.println(p.data.remoteinfo.macAddress);
+      Serial.print("datalen:");
+      Serial.println(p.data.remoteinfo.datalen);
+      break;
+    case pt_readhumidity:
+      Serial.println("pt_readhumidity");
+      break;
+    case pt_readhumidityreply:
+      Serial.println("pt_readhumidityreply");
+      Serial.print("humidity:");
+      Serial.println(p.data.f);
+      break;
+    case pt_readtemperature:
+      Serial.println("pt_readtemperature");
+      break;
+    case pt_readtemperaturereply:
+      Serial.println("pt_readtemperaturereply");
+      Serial.print("temperature:");
+      Serial.println(p.data.f);
+      break;
     default:
       Serial.print("unknown message type: ");
       Serial.println((int)p.type);
