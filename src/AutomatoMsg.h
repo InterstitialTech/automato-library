@@ -43,13 +43,6 @@ struct RemoteInfo {
   uint16_t datalen;
 } __attribute__((packed));
 
-// remote versions of these:
-// analogRead(pin)
-// analogReference - may be custom esp32 vals here? probably int.
-// analogWrite(pin, val (uint8))
-// analogReadResolution(uint8 I think) - look up esp32!
-// analogWriteResolution(uint8 I think)
-
 struct Pinval {
   uint8_t pin;
   uint8_t state;
