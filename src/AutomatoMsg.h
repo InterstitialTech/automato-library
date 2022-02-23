@@ -5,11 +5,6 @@
 // #include <Wire.h>
 #include <RH_RF95.h>
 
-// enum message_type {
-//   mt_request,
-//   mt_reply
-// };
-
 extern float protoVersion;
 
 enum FailCode {
@@ -34,7 +29,9 @@ enum PayloadType {
   pt_readhumidity,
   pt_readhumidityreply,
   pt_readtemperature,
-  pt_readtemperaturereply
+  pt_readtemperaturereply,
+  pt_readanalog,
+  pt_readanalogreply
 };
 
 struct RemoteInfo {
@@ -46,6 +43,11 @@ struct RemoteInfo {
 struct Pinval {
   uint8_t pin;
   uint8_t state;
+} __attribute__((packed));
+
+struct AnalogPinval {
+  uint8_t pin;
+  uint16_t state;
 } __attribute__((packed));
 
 struct Pinmode {
@@ -78,6 +80,7 @@ struct Payload {
   union {
     Pinval pinval;
     Pinmode pinmode;
+    AnalogPinval analogpinval;
     Readmem readmem;
     ReadmemReply readmemreply;
     Writemem writemem;
@@ -114,6 +117,10 @@ void setup_readpin(Payload &p, uint8_t pin);
 void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state); 
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state); 
 
+
+void setup_analogRead(Payload &p, uint8_t pin);
+
+
 void setup_readmem(Payload &p, uint16_t address, uint8_t length);
 bool setup_readmemreply(Payload &p, uint8_t length, void* mem); 
 bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem); 
@@ -133,4 +140,3 @@ void setup_readinforeply(Payload &p,
 bool succeeded(Payload &p);
 
 #endif // Automatomsg_hh_INCLUDED
-

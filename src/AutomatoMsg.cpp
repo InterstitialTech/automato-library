@@ -7,45 +7,58 @@ bool succeeded(Payload &p)
   return p.type != pt_fail;
 }
 
-void setup_ack(Payload &p) 
+void setup_ack(Payload &p)
 {
   p.type = pt_ack;
-} 
+}
 
-void setup_fail(Payload &p, FailCode fc) 
+void setup_fail(Payload &p, FailCode fc)
 {
   p.type = pt_fail;
   p.failcode = fc;
-} 
+}
 
-void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode) 
+void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode)
 {
   p.type = pt_pinmode;
   p.pinmode.pin = pin;
   p.pinmode.mode = mode;
-} 
+}
 
-void setup_readpin(Payload &p, uint8_t pin) 
+void setup_readpin(Payload &p, uint8_t pin)
 {
   p.type = pt_readpin;
   p.pin = pin;
 }
 
-void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state) 
+
+void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state)
 {
   p.type = pt_readpinreply;
   p.pinval.pin = pin;
   p.pinval.state = state;
 
-} 
+}
 
-void setup_writepin(Payload &p, uint8_t pin, uint8_t state) 
+void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
 {
   p.type = pt_writepin;
   p.pinval.pin = pin;
   p.pinval.state = state;
-} 
+}
 
+void setup_analogRead(Payload &p, uint8_t pin)
+{
+  p.type = pt_readanalog;
+  p.pin = pin;
+}
+
+void setup_analogreadreply(Payload &p, uint8_t pin, uint16_t state)
+{
+  p.type = pt_readanalogreply;
+  p.analogpinval.pin = pin;
+  p.analogpinval.state = state;
+}
 
 void setup_readmem(Payload &p, uint16_t address, uint8_t length)
 {
@@ -64,10 +77,10 @@ bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
     memcpy((void*)&p.readmemreply.data, mem, length);
     return true;
   }
-  else 
+  else
     // invalid length.
     return false;
-} 
+}
 bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
 {
   p.type = pt_writemem;
@@ -79,10 +92,10 @@ bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
     memcpy((void*)&p.writemem.data, mem, length);
     return true;
   }
-  else 
+  else
     // invalid length.
     return false;
-} 
+}
 
 void setup_readinfo(Payload &p)
 {
@@ -124,37 +137,41 @@ void setup_readtemperaturereply(Payload &p, float temperature)
 
 uint8_t payloadSize(Payload &p) {
   switch (p.type) {
-    case pt_ack: 
-      return sizeof(PayloadType);
-    case pt_fail: 
-      return sizeof(PayloadType);
-    case pt_pinmode: 
-      return sizeof(PayloadType) + sizeof(Pinmode);
-    case pt_readpin: 
-      return sizeof(PayloadType) + sizeof(Pinval);
-    case pt_readpinreply: 
-      return sizeof(PayloadType) + sizeof(Pinval);
-    case pt_writepin: 
-      return sizeof(PayloadType) + sizeof(Pinval);
+    case pt_ack:
+      return sizeof(uint8_t);
+    case pt_fail:
+      return sizeof(uint8_t);
+    case pt_pinmode:
+      return sizeof(uint8_t) + sizeof(Pinmode);
+    case pt_readpin:
+      return sizeof(uint8_t) + sizeof(uint8_t);
+    case pt_readpinreply:
+      return sizeof(uint8_t) + sizeof(Pinval);
+    case pt_writepin:
+      return sizeof(uint8_t) + sizeof(Pinval);
+    case pt_readanalog:
+      return sizeof(uint8_t) + sizeof(uint8_t);
+    case pt_readanalogreply:
+      return sizeof(uint8_t) + sizeof(AnalogPinval);
     case pt_readmem:
-      return sizeof(PayloadType) + sizeof(Readmem);
+      return sizeof(uint8_t) + sizeof(Readmem);
     case pt_readmemreply:
-      return sizeof(PayloadType) + sizeof(uint8_t) + p.readmemreply.length; 
+      return sizeof(uint8_t) + sizeof(uint8_t) + p.readmemreply.length;
     case pt_writemem:
-      return sizeof(PayloadType) + sizeof(uint16_t) + sizeof(uint8_t) + p.readmemreply.length; 
+      return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t) + p.readmemreply.length;
     case pt_readinfo:
-      return sizeof(PayloadType);
+      return sizeof(uint8_t);
     case pt_readinforeply:
-      return sizeof(PayloadType)+ sizeof(RemoteInfo); 
+      return sizeof(uint8_t) + sizeof(RemoteInfo);
     case pt_readhumidity:
-      return sizeof(PayloadType);
+      return sizeof(uint8_t);
     case pt_readhumidityreply:
-      return sizeof(PayloadType) + sizeof(float);
+      return sizeof(uint8_t)+ sizeof(float);
     case pt_readtemperature:
-      return sizeof(PayloadType);
+      return sizeof(uint8_t);
     case pt_readtemperaturereply:
-      return sizeof(PayloadType) + sizeof(float);
-    default: 
+      return sizeof(uint8_t)+ sizeof(float);
+    default:
         return 0;
   }
 }
@@ -211,6 +228,18 @@ void printPayload(Payload &p)
       Serial.println(p.pinval.pin);
       Serial.print("state: ");
       Serial.println(p.pinval.state);
+      break;
+    case pt_readanalog:
+      Serial.println("pt_readanalog");
+      Serial.print("pin: ");
+      Serial.println(p.pin);
+      break;
+    case pt_readanalogreply:
+      Serial.println("pt_readanalogreply");
+      Serial.print("pin: ");
+      Serial.println(p.pin);
+      Serial.print("state: ");
+      Serial.println(p.analogpinval.state);
       break;
     case pt_readmem:
       Serial.println("pt_readmem");
