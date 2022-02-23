@@ -187,9 +187,6 @@ bool Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
 
 bool Automato::sendPayload(uint8_t network_id, Payload &p)
 {
-  // // Serial.print("sending Payload: ");
-  // printPayload(p);
-  
   if (rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), network_id) == RH_ROUTER_ERROR_NONE) {
       uint8_t from_id;
 
@@ -198,23 +195,17 @@ bool Automato::sendPayload(uint8_t network_id, Payload &p)
       // destination.
       if (receiveMessage(from_id, mb))
       {
-  //       Serial.println("sendPayload, reply: ");
-        // printPayload(mb.payload);
         return succeeded(mb.payload);
       }
       else 
       {
-  //       Serial.println("sendPayload; receiveMessage failed");
         return false;
       }
   }
   else 
   {
-  //     Serial.println("sendtowait failed");
       return false;
   }
-  // rf95.send((uint8_t*)&m, sizeof(message));
-  // rf95.waitPacketSent();
 }
 
 bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
@@ -223,7 +214,6 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
   // TODO switch to non-timeout?
   mb.payload.f = 0;
   if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id))
-  // if (rhmesh.recvfromAck(mb.buf, &len, &from_id))
   {
       // Serial.print("received message, len: ");
       // Serial.println(len);
@@ -238,27 +228,15 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
 
 void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
 {
-  // Serial.println("handleRcMessage");
-  // printPayload(mb.payload);
-  // Serial.print("payload size: ");
-  // Serial.println(payloadSize(mb.payload));
   switch (mb.payload.type) {
     case pt_pinmode:
       if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40) {
         pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
         setup_ack(mb.payload);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         // failed, invalid address.
         setup_fail(mb.payload, fc_invalid_pin_number);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;
@@ -267,27 +245,15 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
         if (mb.payload.pinval.state == 0) {
           digitalWrite(mb.payload.pinval.pin, LOW);
           setup_ack(mb.payload);
-  //         Serial.println("sending message");
-  //         printPayload(mb.payload);
-  //         Serial.print("payload size: ");
-  //         Serial.println(payloadSize(mb.payload));
           rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
         } else if (mb.payload.pinval.state == 1) {
           digitalWrite(mb.payload.pinval.pin, HIGH);
           setup_ack(mb.payload);
-  //         Serial.println("sending message");
-  //         printPayload(mb.payload);
-  //         Serial.print("payload size: ");
-  //         Serial.println(payloadSize(mb.payload));
           rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
         }
       } else {
         // failed, invalid address.
         setup_fail(mb.payload, fc_invalid_pin_number);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;
@@ -295,18 +261,10 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
       if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
         bool val = digitalRead(mb.payload.pin);
         setup_readpinreply(mb.payload, mb.payload.pin, val);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         // failed, invalid address.
         setup_fail(mb.payload, fc_invalid_pin_number);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;
@@ -315,29 +273,17 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
       if (mb.payload.readmem.address >= this->datalen) {
         // failed, invalid address.
         setup_fail(mb.payload, fc_invalid_mem_address);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       }
       else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen){
         // failed, invalid length.
         setup_fail(mb.payload, fc_invalid_mem_length);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         // build reply and send.
         setup_readmemreply(mb.payload,
                            mb.payload.readmem.length,
                            databuf + mb.payload.readmem.address);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;
@@ -346,56 +292,32 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
       if (mb.payload.readmem.address >= this->datalen) {
         // failed, invalid address.
         setup_fail(mb.payload, fc_invalid_mem_address);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       }
       else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen){
         // failed, invalid length.
         setup_fail(mb.payload, fc_invalid_mem_length);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         memcpy(this->databuf + mb.payload.writemem.address,
                 mb.payload.writemem.data,
                 mb.payload.writemem.length);
         setup_ack(mb.payload);
-  //       Serial.println("sending message");
-  //       printPayload(mb.payload);
-  //       Serial.print("payload size: ");
-  //       Serial.println(payloadSize(mb.payload));
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       };
       break;
     case pt_readinfo:
       setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen);
-  //     Serial.println("sending message");
-  //     printPayload(mb.payload);
-  //     Serial.print("payload size: ");
-  //     Serial.println(payloadSize(mb.payload));
       rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       break;
     case pt_readhumidity:
       readTempHumidity();
       setup_readhumidityreply(mb.payload, getHumidity());
-  //     Serial.println("sending message");
-  //     printPayload(mb.payload);
-  //     Serial.print("payload size: ");
-  //     Serial.println(payloadSize(mb.payload));
       rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       break;
     case pt_readtemperature:
       readTempHumidity();
       setup_readtemperaturereply(mb.payload, getTemperature());
-  //     Serial.println("sending message");
-  //     printPayload(mb.payload);
-  //     Serial.print("payload size: ");
-  //     Serial.println(payloadSize(mb.payload));
       rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       break;
     // error!  These should only be received in response to a request.
@@ -406,15 +328,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
     default:
       // failed, unsupported message type.
       setup_fail(mb.payload, fc_invalid_message_type);
-  //     Serial.println("sending message");
-  //     printPayload(mb.payload);
-  //     Serial.print("payload size: ");
-  //     Serial.println(payloadSize(mb.payload));
       rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-      // mb.msg.type = mt_ack;
-      // mb.msg.payload = ac_invalid_message_type;
-      // rf95.send((const uint8_t*)&mb.msg, sizeof(message));
-      // rf95.waitPacketSent();
       break;
   };
 }

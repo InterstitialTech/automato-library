@@ -73,20 +73,6 @@ struct Writemem {
   uint8_t data[MAX_WRITEMEM];
 } __attribute__((packed));
 
-// struct Data {
-//   union {
-//     Pinval pinval;
-//     Pinmode pinmode;
-//     Readmem readmem;
-//     ReadmemReply readmemreply;
-//     Writemem writemem;
-//     RemoteInfo remoteinfo;
-//     uint8_t failcode;
-//     uint8_t pin;
-//     float f;
-//   };
-// } __attribute__((packed));
-
 struct Payload {
   uint8_t type;   // PayloadType
   union {
