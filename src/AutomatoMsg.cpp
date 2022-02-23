@@ -11,22 +11,26 @@ void setup_ack(Payload &p)
 {
   p.type = pt_ack;
 } 
+
 void setup_fail(Payload &p, FailCode fc) 
 {
   p.type = pt_fail;
   p.failcode = fc;
 } 
+
 void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode) 
 {
   p.type = pt_pinmode;
   p.pinmode.pin = pin;
   p.pinmode.mode = mode;
 } 
+
 void setup_readpin(Payload &p, uint8_t pin) 
 {
   p.type = pt_readpin;
   p.pin = pin;
 }
+
 void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state) 
 {
   p.type = pt_readpinreply;
@@ -34,6 +38,7 @@ void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state)
   p.pinval.state = state;
 
 } 
+
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state) 
 {
   p.type = pt_writepin;

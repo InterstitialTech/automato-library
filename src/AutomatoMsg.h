@@ -58,8 +58,8 @@ struct Readmem {
   uint8_t length;
 } __attribute__((packed));
 
-#define MAX_WRITEMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(PayloadType)
-#define MAX_READMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(PayloadType) - sizeof(uint8_t)
+#define MAX_WRITEMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(uint8_t)
+#define MAX_READMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint8_t) - sizeof(uint8_t)
 
 struct ReadmemReply {
   uint8_t length;
@@ -88,7 +88,7 @@ struct Writemem {
 // } __attribute__((packed));
 
 struct Payload {
-  PayloadType type;
+  uint8_t type;   // PayloadType
   union {
     Pinval pinval;
     Pinmode pinmode;
