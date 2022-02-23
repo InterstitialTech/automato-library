@@ -103,6 +103,22 @@ bool Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *resul
     return false;
 }
 
+bool Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
+{
+  setup_readanalog(mb.payload, pin);
+  if (sendPayload(network_id, mb.payload)) 
+  {
+    if (mb.payload.type == pt_readanalogreply) {
+      *result = mb.payload.analogpinval.state;
+      return true;
+    }
+    else 
+      return false;
+  }
+  else
+    return false;
+}
+
 bool Automato::remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value)
 {
   if (!setup_writemem(mb.payload, address, length, value))
@@ -261,6 +277,17 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
       if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
         bool val = digitalRead(mb.payload.pin);
         setup_readpinreply(mb.payload, mb.payload.pin, val);
+        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+      } else {
+        // failed, invalid address.
+        setup_fail(mb.payload, fc_invalid_pin_number);
+        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+      };
+      break;
+    case pt_readanalog: 
+      if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
+        bool val = analogRead(mb.payload.pin);
+        setup_readanalogreply(mb.payload, mb.payload.pin, val);
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
         // failed, invalid address.

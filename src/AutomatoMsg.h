@@ -117,9 +117,8 @@ void setup_readpin(Payload &p, uint8_t pin);
 void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state); 
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state); 
 
-
-void setup_analogRead(Payload &p, uint8_t pin);
-
+void setup_readanalog(Payload &p, uint8_t pin);
+void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state);
 
 void setup_readmem(Payload &p, uint16_t address, uint8_t length);
 bool setup_readmemreply(Payload &p, uint8_t length, void* mem); 

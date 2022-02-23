@@ -47,13 +47,13 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
   p.pinval.state = state;
 }
 
-void setup_analogRead(Payload &p, uint8_t pin)
+void setup_readanalog(Payload &p, uint8_t pin)
 {
   p.type = pt_readanalog;
   p.pin = pin;
 }
 
-void setup_analogreadreply(Payload &p, uint8_t pin, uint16_t state)
+void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state)
 {
   p.type = pt_readanalogreply;
   p.analogpinval.pin = pin;

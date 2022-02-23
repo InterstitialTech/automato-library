@@ -52,6 +52,8 @@ class Automato {
         bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
         bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
 
+        bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
+
         bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
         bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
