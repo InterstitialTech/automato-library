@@ -286,7 +286,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
       break;
     case pt_readanalog: 
       if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
-        bool val = analogRead(mb.payload.pin);
+        int val = analogRead(mb.payload.pin);
         setup_readanalogreply(mb.payload, mb.payload.pin, val);
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       } else {
