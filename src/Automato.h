@@ -46,7 +46,6 @@ class Automato {
 
         static uint64_t macAddress();
 
-        // TODO rename destination_id -> network_id
         // remote control functions.
         bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
         bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);

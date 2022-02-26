@@ -70,7 +70,6 @@ void setup_readmem(Payload &p, uint16_t address, uint8_t length)
 bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
 {
   p.type = pt_readmemreply;
-  // memory range should be checked on the other end too.  TODO: remove?
   if (length <= MAX_READMEM)
   {
     p.readmemreply.length = length;
@@ -84,7 +83,6 @@ bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
 bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
 {
   p.type = pt_writemem;
-  // memory range should be checked on the other end too.  TODO: remove?
   if (length <= MAX_WRITEMEM)
   {
     p.writemem.address = address;
