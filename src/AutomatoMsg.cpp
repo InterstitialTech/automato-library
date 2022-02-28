@@ -7,6 +7,22 @@ bool succeeded(Payload &p)
   return p.type != pt_fail;
 }
 
+const char* failString(FailCode fc)
+{
+  switch (fc) {
+    case fc_invalid_message_type:
+      return "invalid message type";
+    case fc_invalid_pin_number:
+      return "invalid pin number";
+    case fc_invalid_mem_address:
+      return "invalid mem address";
+    case fc_invalid_mem_length:
+      return "invalid mem length";
+    default:
+      return "unknown error code";
+  }
+}
+
 void setup_ack(Payload &p)
 {
   p.type = pt_ack;

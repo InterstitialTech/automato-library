@@ -138,4 +138,6 @@ void setup_readinforeply(Payload &p,
 
 bool succeeded(Payload &p);
 
+const char* failString(FailCode fc);
+
 #endif // Automatomsg_hh_INCLUDED
