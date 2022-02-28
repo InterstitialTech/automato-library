@@ -1,6 +1,6 @@
 /*
-An Arduino library for the Automato sensor board
-*/
+   An Arduino library for the Automato sensor board
+ */
 
 #ifndef AUTOMATO_SENSOR
 #define AUTOMATO_SENSOR
@@ -23,55 +23,55 @@ extern Adafruit_ILI9341 screen;
 
 class Automato {
 
-    private:
-        SHTC3 shtc3;
-        float temperature, humidity;
+private:
+    SHTC3 shtc3;
+    float temperature, humidity;
 
-        RHMesh rhmesh;
+    RHMesh rhmesh;
 
-    protected:
+protected:
 
-    public:
-        Automato(uint8_t networkid, void *databuf, uint16_t datalen);
-        void init(float frequency = 915.0);
+public:
+    Automato(uint8_t networkid, void *databuf, uint16_t datalen);
+    void init(float frequency = 915.0);
 
-        void *databuf;
-        uint16_t datalen;
+    void *databuf;
+    uint16_t datalen;
 
-        void clearScreen(void);
+    void clearScreen(void);
 
-        void readTempHumidity();
-        float getTemperature();
-        float getHumidity();
+    void readTempHumidity();
+    float getTemperature();
+    float getHumidity();
 
-        static uint64_t macAddress();
+    static uint64_t macAddress();
 
-        // remote control functions.
-        bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
-        bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
-        bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
+    // remote control functions.
+    bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
+    bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
+    bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
 
-        bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
+    bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
 
-        bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
-        bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
-        bool remoteTemperature(uint8_t network_id, float &temperature);
-        bool remoteHumidity(uint8_t network_id, float &humidity);
+    bool remoteTemperature(uint8_t network_id, float &temperature);
+    bool remoteHumidity(uint8_t network_id, float &humidity);
 
-        bool remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
+    bool remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
 
-        // receive and handle remote control messages.
-        void doRemoteControl();
+    // receive and handle remote control messages.
+    void doRemoteControl();
 
-        // lower level message sending and receiving.
-        bool sendPayload(uint8_t network_id, Payload &p);
-        bool receiveMessage(uint8_t &from_id, msgbuf &mb);
-        void handleRcMessage(uint8_t &from_id, msgbuf &mb);
+    // lower level message sending and receiving.
+    bool sendPayload(uint8_t network_id, Payload &p);
+    bool receiveMessage(uint8_t &from_id, msgbuf &mb);
+    void handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };
 
 
-#define remote_memwrite(dest, struct, field, val) remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct::field), (void*)val)
-#define remote_memread(dest, struct, field, val) remoteMemRead(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct::field), (void*)val)
- 
+#define remote_memwrite(dest, struct, field, val) remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
+#define remote_memread(dest, struct, field, val) remoteMemRead(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
+
 #endif /* AUTOMATO_SENSOR */
