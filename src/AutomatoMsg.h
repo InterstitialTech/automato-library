@@ -7,12 +7,12 @@
 
 extern float protoVersion;
 
-enum FailCode {
-    fc_invalid_message_type,
-    fc_invalid_pin_number,
-    fc_invalid_mem_address,
-    fc_invalid_mem_length,
-    fc_invalid_reply_message,
+enum ResultCode {
+    rc_invalid_message_type,
+    rc_invalid_pin_number,
+    rc_invalid_mem_address,
+    rc_invalid_mem_length,
+    rc_invalid_reply_message,
 };
 
 enum PayloadType {
@@ -111,7 +111,7 @@ uint8_t payloadSize(Payload &p);
 void printPayload(Payload &p);
 
 void setup_ack(Payload &p);
-void setup_fail(Payload &p, FailCode fc);
+void setup_fail(Payload &p, ResultCode rc);
 
 void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode);
 void setup_readpin(Payload &p, uint8_t pin);
@@ -139,6 +139,6 @@ void setup_readinforeply(Payload &p,
 
 bool succeeded(Payload &p);
 
-const char* failString(FailCode fc);
+const char* failString(ResultCode rc);
 
 #endif // Automatomsg_hh_INCLUDED

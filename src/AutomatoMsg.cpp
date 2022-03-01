@@ -7,16 +7,16 @@ bool succeeded(Payload &p)
     return p.type != pt_fail;
 }
 
-const char* failString(FailCode fc)
+const char* failString(ResultCode rc)
 {
     switch (fc) {
-        case fc_invalid_message_type:
+        rc_invalid_message_type:
             return "invalid message type";
-        case fc_invalid_pin_number:
+        rc_invalid_pin_number:
             return "invalid pin number";
-        case fc_invalid_mem_address:
+        rc_invalid_mem_address:
             return "invalid mem address";
-        case fc_invalid_mem_length:
+        rc_invalid_mem_length:
             return "invalid mem length";
         default:
             return "unknown error code";
@@ -28,7 +28,7 @@ void setup_ack(Payload &p)
     p.type = pt_ack;
 }
 
-void setup_fail(Payload &p, FailCode fc)
+void setup_fail(Payload &p, ResultCode rc)
 {
     p.type = pt_fail;
     p.failcode = fc;
@@ -203,19 +203,9 @@ void printPayload(Payload &p)
             Serial.println("pt_ack");
             break;
         case pt_fail:
-            Serial.print("pt_fail: ");
-            switch (p.failcode) {
-fc_invalid_message_type:
-                Serial.println("fc_invalid_message_type");
-                break;
-fc_invalid_pin_number:
-                Serial.println("fc_invalid_pin_number");
-                break;
-                default:
-                    Serial.print("unknown failcode: ");
-                    Serial.println(p.failcode);
-                    break;
-            }
+            Serial.print("pt_fail; code: ");
+            Serial.println(p.failcode);
+            Serial.println(failString(p.failcode));
             break;
         case pt_pinmode:
             Serial.println("pt_pinmode");
