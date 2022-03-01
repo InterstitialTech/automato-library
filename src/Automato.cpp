@@ -231,9 +231,6 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
     mb.payload.f = 0;
     if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id))
     {
-        // Serial.print("received message, len: ");
-        // Serial.println(len);
-        // printPayload(mb.payload);
         return true;
     }
     else
