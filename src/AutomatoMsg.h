@@ -8,6 +8,7 @@
 extern float protoVersion;
 
 enum ResultCode {
+    rc_ok,
     rc_invalid_message_type,
     rc_invalid_pin_number,
     rc_invalid_mem_address,
@@ -139,6 +140,6 @@ void setup_readinforeply(Payload &p,
 
 bool succeeded(Payload &p);
 
-const char* failString(ResultCode rc);
+const char* resultString(ResultCode rc);
 
 #endif // Automatomsg_hh_INCLUDED

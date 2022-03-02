@@ -21,6 +21,22 @@
 // so for now, declare it globally
 extern Adafruit_ILI9341 screen;
 
+class AutomatoResult {
+  public:
+                    
+      // true for success/ok, false for error.
+      operator bool (); 
+      const char* as_string() const;
+      ResultCode resultCode() const; 
+
+      static AutomatoResult fromResultCode(ResultCode rc);
+      // AutomatoResult fromRHCode(uint8_t ??);
+
+  private:
+
+      ResultCode rc;
+};
+
 class Automato {
 
 private:

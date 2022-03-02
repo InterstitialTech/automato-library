@@ -18,6 +18,35 @@ uint8_t from_id;
 // see note in Automato.h
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
+// --------------------------------------------------------------------------------------------------
+
+AutomatoResult::operator bool () {
+  if (this->rc == rc_ok) 
+    return true;
+  else
+    return false;
+}
+
+const char* AutomatoResult::as_string() const
+{
+  return resultString(rc);
+}
+
+ResultCode AutomatoResult::resultCode() const
+{
+  this->rc;
+}
+
+AutomatoResult AutomatoResult::fromResultCode(ResultCode rc)
+{
+  AutomatoResult ar;
+  ar.rc = rc;
+  return ar;
+}
+
+
+// --------------------------------------------------------------------------------------------------
+
 Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen)
     : rhmesh(rf95, networkid), databuf(databuf), datalen(datalen)
 {
@@ -249,7 +278,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             } else {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
+                setup_fail(mb.payload, rc_invalid_pin_number);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             };
             break;
@@ -266,7 +295,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 }
             } else {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
+                setup_fail(mb.payload, rc_invalid_pin_number);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             };
             break;
@@ -277,7 +306,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             } else {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
+                setup_fail(mb.payload, rc_invalid_pin_number);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             };
             break;
@@ -288,7 +317,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             } else {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
+                setup_fail(mb.payload, rc_invalid_pin_number);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             };
             break;
@@ -296,12 +325,12 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
             // range check.
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_mem_address);
+                setup_fail(mb.payload, rc_invalid_mem_address);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
-                setup_fail(mb.payload, fc_invalid_mem_length);
+                setup_fail(mb.payload, rc_invalid_mem_length);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             } else {
                 // build reply and send.
@@ -315,12 +344,12 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
             // range check.
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_mem_address);
+                setup_fail(mb.payload, rc_invalid_mem_address);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
-                setup_fail(mb.payload, fc_invalid_mem_length);
+                setup_fail(mb.payload, rc_invalid_mem_length);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             } else {
                 memcpy(this->databuf + mb.payload.writemem.address,
@@ -351,7 +380,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
         case pt_readinforeply:
         default:
             // failed, unsupported message type.
-            setup_fail(mb.payload, fc_invalid_message_type);
+            setup_fail(mb.payload, rc_invalid_message_type);
             rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             break;
     };

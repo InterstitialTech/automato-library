@@ -7,9 +7,9 @@ bool succeeded(Payload &p)
     return p.type != pt_fail;
 }
 
-const char* failString(ResultCode rc)
+const char* resultString(ResultCode rc)
 {
-    switch (fc) {
+    switch (rc) {
         rc_invalid_message_type:
             return "invalid message type";
         rc_invalid_pin_number:
@@ -31,7 +31,7 @@ void setup_ack(Payload &p)
 void setup_fail(Payload &p, ResultCode rc)
 {
     p.type = pt_fail;
-    p.failcode = fc;
+    p.failcode = rc;
 }
 
 void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode)
@@ -205,7 +205,7 @@ void printPayload(Payload &p)
         case pt_fail:
             Serial.print("pt_fail; code: ");
             Serial.println(p.failcode);
-            Serial.println(failString(p.failcode));
+            Serial.println(resultString((ResultCode)p.failcode));
             break;
         case pt_pinmode:
             Serial.println("pt_pinmode");
