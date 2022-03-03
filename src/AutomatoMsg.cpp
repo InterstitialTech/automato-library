@@ -10,7 +10,7 @@ bool succeeded(Payload &p)
 const char* resultString(ResultCode rc)
 {
     switch (rc) {
-        case rc_ok: 
+        case rc_ok:
             return "ok";
         case rc_invalid_message_type:
             return "invalid message type";
@@ -35,7 +35,7 @@ const char* resultString(ResultCode rc)
         case rc_rh_router_error_unable_to_deliver:
             return "router error unable to deliver";
         case rc_invalid_rh_router_error:
-            return "invalid rh router error code"; 
+            return "invalid rh router error code";
         default:
             return "unknown error code";
     }
@@ -45,37 +45,37 @@ const char* resultString(ResultCode rc)
 // --------------------------------------------------------------------------------------------------
 
 AutomatoResult::operator bool () {
-  if (this->rc == rc_ok) 
-    return true;
-  else
-    return false;
+    if (this->rc == rc_ok)
+        return true;
+    else
+        return false;
 }
 
 const char* AutomatoResult::as_string() const
 {
-  return resultString(rc);
+    return resultString(rc);
 }
 
 ResultCode AutomatoResult::resultCode() const
 {
-  this->rc;
+    this->rc;
 }
 
 AutomatoResult AutomatoResult::fromResultCode(ResultCode rc)
 {
-  AutomatoResult ar;
-  ar.rc = rc;
-  return ar;
+    AutomatoResult ar;
+    ar.rc = rc;
+    return ar;
 }
 
 AutomatoResult AutomatoResult::fromReply(Payload &p)
 {
-  if (p.type == pt_ack)
-    AutomatoResult::fromResultCode(rc_ok);
-  else if (p.type == pt_fail)
-    AutomatoResult::fromResultCode((ResultCode)p.failcode);
-  else     
-    AutomatoResult::fromResultCode(rc_invalid_reply_message);
+    if (p.type == pt_ack)
+        AutomatoResult::fromResultCode(rc_ok);
+    else if (p.type == pt_fail)
+        AutomatoResult::fromResultCode((ResultCode)p.failcode);
+    else
+        AutomatoResult::fromResultCode(rc_invalid_reply_message);
 }
 
 
@@ -140,7 +140,7 @@ AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length)
     p.readmem.address = address;
     p.readmem.length = length;
 
-      return AutomatoResult::fromResultCode(rc_ok);
+    return AutomatoResult::fromResultCode(rc_ok);
 
 }
 

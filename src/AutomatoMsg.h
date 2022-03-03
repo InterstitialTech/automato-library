@@ -116,17 +116,16 @@ struct msgbuf {
 } __attribute__((packed));
 
 class AutomatoResult {
-  public:
-      // true for success/ok, false for error.
-      operator bool (); 
-      const char* as_string() const;
-      ResultCode resultCode() const; 
+public:
+    // true for success/ok, false for error.
+    operator bool ();
+    const char* as_string() const;
+    ResultCode resultCode() const;
 
-      static AutomatoResult fromResultCode(ResultCode rc);
-      static AutomatoResult fromReply(Payload &p);
-      // static AutomatoResult fromRHRouterCode(uint8_t rc);
-  private:
-      ResultCode rc;
+    static AutomatoResult fromResultCode(ResultCode rc);
+    static AutomatoResult fromReply(Payload &p);
+private:
+    ResultCode rc;
 };
 
 uint8_t payloadSize(Payload &p);

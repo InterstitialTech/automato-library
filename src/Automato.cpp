@@ -20,22 +20,22 @@ Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
 AutomatoResult fromRHRouterCode(uint8_t rc)
 {
-  switch (rc) {
-    case RH_ROUTER_ERROR_NONE:
-      return AutomatoResult::fromResultCode(rc_ok);
-    case RH_ROUTER_ERROR_INVALID_LENGTH:
-      return AutomatoResult::fromResultCode(rc_rh_router_error_invalid_length);
-    case RH_ROUTER_ERROR_NO_ROUTE:
-      return AutomatoResult::fromResultCode(rc_rh_router_error_no_route);
-    case RH_ROUTER_ERROR_TIMEOUT:
-      return AutomatoResult::fromResultCode(rc_rh_router_error_timeout);
-    case RH_ROUTER_ERROR_NO_REPLY:
-      return AutomatoResult::fromResultCode(rc_rh_router_error_no_reply);
-    case RH_ROUTER_ERROR_UNABLE_TO_DELIVER:
-      return AutomatoResult::fromResultCode(rc_rh_router_error_unable_to_deliver);
-    default:
-      return AutomatoResult::fromResultCode(rc_invalid_rh_router_error);
-  }
+    switch (rc) {
+        case RH_ROUTER_ERROR_NONE:
+            return AutomatoResult::fromResultCode(rc_ok);
+        case RH_ROUTER_ERROR_INVALID_LENGTH:
+            return AutomatoResult::fromResultCode(rc_rh_router_error_invalid_length);
+        case RH_ROUTER_ERROR_NO_ROUTE:
+            return AutomatoResult::fromResultCode(rc_rh_router_error_no_route);
+        case RH_ROUTER_ERROR_TIMEOUT:
+            return AutomatoResult::fromResultCode(rc_rh_router_error_timeout);
+        case RH_ROUTER_ERROR_NO_REPLY:
+            return AutomatoResult::fromResultCode(rc_rh_router_error_no_reply);
+        case RH_ROUTER_ERROR_UNABLE_TO_DELIVER:
+            return AutomatoResult::fromResultCode(rc_rh_router_error_unable_to_deliver);
+        default:
+            return AutomatoResult::fromResultCode(rc_invalid_rh_router_error);
+    }
 }
 
 Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen)
@@ -110,7 +110,7 @@ AutomatoResult Automato::remoteDigitalWrite(uint8_t network_id, uint8_t pin, uin
 AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result)
 {
     setup_readpin(mb.payload, pin);
-    auto ar = sendPayload(network_id, mb.payload); 
+    auto ar = sendPayload(network_id, mb.payload);
     if (ar)
     {
         if (mb.payload.type == pt_readpinreply) {
@@ -127,7 +127,7 @@ AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint
 AutomatoResult Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
 {
     setup_readanalog(mb.payload, pin);
-    auto ar = sendPayload(network_id, mb.payload); 
+    auto ar = sendPayload(network_id, mb.payload);
     if (ar)
     {
         if (mb.payload.type == pt_readanalogreply) {
@@ -145,7 +145,7 @@ AutomatoResult Automato::remoteMemWrite(uint8_t network_id, uint16_t address, ui
 {
     AutomatoResult ar;
     bool tmp = (ar = setup_writemem(mb.payload, address, length, value))
-                && (ar = sendPayload(network_id, mb.payload));
+        && (ar = sendPayload(network_id, mb.payload));
 
     return ar;
 }
@@ -176,7 +176,7 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperature)
 {
     setup_readtemperature(mb.payload);
-    auto ar = sendPayload(network_id, mb.payload); 
+    auto ar = sendPayload(network_id, mb.payload);
     if (ar)
     {
         if (mb.payload.type == pt_readtemperaturereply) {
@@ -193,7 +193,7 @@ AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperatur
 AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 {
     setup_readhumidity(mb.payload);
-    auto ar = sendPayload(network_id, mb.payload); 
+    auto ar = sendPayload(network_id, mb.payload);
     if (ar)
     {
         if (mb.payload.type == pt_readhumidityreply) {
@@ -210,7 +210,7 @@ AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
 {
     setup_readinfo(mb.payload);
-    auto ar = sendPayload(network_id, mb.payload); 
+    auto ar = sendPayload(network_id, mb.payload);
     if (ar)
     {
         if (mb.payload.type == pt_readinforeply) {
