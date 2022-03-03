@@ -21,21 +21,7 @@
 // so for now, declare it globally
 extern Adafruit_ILI9341 screen;
 
-class AutomatoResult {
-  public:
-                    
-      // true for success/ok, false for error.
-      operator bool (); 
-      const char* as_string() const;
-      ResultCode resultCode() const; 
-
-      static AutomatoResult fromResultCode(ResultCode rc);
-      // AutomatoResult fromRHCode(uint8_t ??);
-
-  private:
-
-      ResultCode rc;
-};
+AutomatoResult fromRHRouterCode(uint8_t rc);
 
 class Automato {
 
@@ -63,25 +49,25 @@ public:
     static uint64_t macAddress();
 
     // remote control functions.
-    bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
-    bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
-    bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
+    AutomatoResult remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
+    AutomatoResult remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
+    AutomatoResult remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
 
-    bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
+    AutomatoResult remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
 
-    bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
-    bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    AutomatoResult remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    AutomatoResult remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
-    bool remoteTemperature(uint8_t network_id, float &temperature);
-    bool remoteHumidity(uint8_t network_id, float &humidity);
+    AutomatoResult remoteTemperature(uint8_t network_id, float &temperature);
+    AutomatoResult remoteHumidity(uint8_t network_id, float &humidity);
 
-    bool remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
+    AutomatoResult remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
 
     // receive and handle remote control messages.
     void doRemoteControl();
 
     // lower level message sending and receiving.
-    bool sendPayload(uint8_t network_id, Payload &p);
+    AutomatoResult sendPayload(uint8_t network_id, Payload &p);
     bool receiveMessage(uint8_t &from_id, msgbuf &mb);
     void handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };

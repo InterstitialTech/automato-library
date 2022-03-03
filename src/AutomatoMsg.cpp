@@ -10,18 +10,76 @@ bool succeeded(Payload &p)
 const char* resultString(ResultCode rc)
 {
     switch (rc) {
-        rc_invalid_message_type:
+        case rc_ok: 
+            return "ok";
+        case rc_invalid_message_type:
             return "invalid message type";
-        rc_invalid_pin_number:
+        case rc_invalid_pin_number:
             return "invalid pin number";
-        rc_invalid_mem_address:
+        case rc_invalid_mem_address:
             return "invalid mem address";
-        rc_invalid_mem_length:
+        case rc_invalid_mem_length:
             return "invalid mem length";
+        case rc_invalid_reply_message:
+            return "expected a reply message";
+        case rc_reply_timeout:
+            return "timeout waiting for reply message";
+        case rc_rh_router_error_invalid_length:
+            return "router error invalid length";
+        case rc_rh_router_error_no_route:
+            return "router error no route";
+        case rc_rh_router_error_timeout:
+            return "router error timeout";
+        case rc_rh_router_error_no_reply:
+            return "router error no reply";
+        case rc_rh_router_error_unable_to_deliver:
+            return "router error unable to deliver";
+        case rc_invalid_rh_router_error:
+            return "invalid rh router error code"; 
         default:
             return "unknown error code";
     }
 }
+
+
+// --------------------------------------------------------------------------------------------------
+
+AutomatoResult::operator bool () {
+  if (this->rc == rc_ok) 
+    return true;
+  else
+    return false;
+}
+
+const char* AutomatoResult::as_string() const
+{
+  return resultString(rc);
+}
+
+ResultCode AutomatoResult::resultCode() const
+{
+  this->rc;
+}
+
+AutomatoResult AutomatoResult::fromResultCode(ResultCode rc)
+{
+  AutomatoResult ar;
+  ar.rc = rc;
+  return ar;
+}
+
+AutomatoResult AutomatoResult::fromReply(Payload &p)
+{
+  if (p.type == pt_ack)
+    AutomatoResult::fromResultCode(rc_ok);
+  else if (p.type == pt_fail)
+    AutomatoResult::fromResultCode((ResultCode)p.failcode);
+  else     
+    AutomatoResult::fromResultCode(rc_invalid_reply_message);
+}
+
+
+// --------------------------------------------------------------------------------------------------
 
 void setup_ack(Payload &p)
 {
@@ -76,27 +134,30 @@ void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state)
     p.analogpinval.state = state;
 }
 
-void setup_readmem(Payload &p, uint16_t address, uint8_t length)
+AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length)
 {
     p.type = pt_readmem;
     p.readmem.address = address;
     p.readmem.length = length;
+
+      return AutomatoResult::fromResultCode(rc_ok);
+
 }
 
-bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
+AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem)
 {
     p.type = pt_readmemreply;
     if (length <= MAX_READMEM)
     {
         p.readmemreply.length = length;
         memcpy((void*)&p.readmemreply.data, mem, length);
-        return true;
+        return AutomatoResult::fromResultCode(rc_ok);
     }
     else
         // invalid length.
-        return false;
+        return AutomatoResult::fromResultCode(rc_invalid_mem_length);
 }
-bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
+AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
 {
     p.type = pt_writemem;
     if (length <= MAX_WRITEMEM)
@@ -104,11 +165,11 @@ bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
         p.writemem.address = address;
         p.writemem.length = length;
         memcpy((void*)&p.writemem.data, mem, length);
-        return true;
+        return AutomatoResult::fromResultCode(rc_ok);
     }
     else
         // invalid length.
-        return false;
+        return AutomatoResult::fromResultCode(rc_invalid_mem_length);
 }
 
 void setup_readinfo(Payload &p)

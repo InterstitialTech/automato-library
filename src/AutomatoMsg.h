@@ -14,6 +14,13 @@ enum ResultCode {
     rc_invalid_mem_address,
     rc_invalid_mem_length,
     rc_invalid_reply_message,
+    rc_reply_timeout,
+    rc_rh_router_error_invalid_length,
+    rc_rh_router_error_no_route,
+    rc_rh_router_error_timeout,
+    rc_rh_router_error_no_reply,
+    rc_rh_router_error_unable_to_deliver,
+    rc_invalid_rh_router_error,
 };
 
 enum PayloadType {
@@ -108,6 +115,20 @@ struct msgbuf {
     };
 } __attribute__((packed));
 
+class AutomatoResult {
+  public:
+      // true for success/ok, false for error.
+      operator bool (); 
+      const char* as_string() const;
+      ResultCode resultCode() const; 
+
+      static AutomatoResult fromResultCode(ResultCode rc);
+      static AutomatoResult fromReply(Payload &p);
+      // static AutomatoResult fromRHRouterCode(uint8_t rc);
+  private:
+      ResultCode rc;
+};
+
 uint8_t payloadSize(Payload &p);
 void printPayload(Payload &p);
 
@@ -122,9 +143,9 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state);
 void setup_readanalog(Payload &p, uint8_t pin);
 void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state);
 
-void setup_readmem(Payload &p, uint16_t address, uint8_t length);
-bool setup_readmemreply(Payload &p, uint8_t length, void* mem);
-bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem);
+AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length);
+AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem);
+AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem);
 
 void setup_readhumidity(Payload &p);
 void setup_readhumidityreply(Payload &p, float humidity);
