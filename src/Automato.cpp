@@ -19,7 +19,7 @@ uint8_t from_id;
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
 Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs, float frequency)
-:rhmesh(rf95, networkid), databuf(databuf), datalen(datalen), allowRemotePinOutputs(allowRemotePinOutputs) 
+:rhmesh(rf95, networkid), databuf(databuf), datalen(datalen), allowRemotePinOutputs(allowRemotePinOutputs)
 {
     // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
     // specify by country?
@@ -69,7 +69,7 @@ float Automato::getHumidity(void)
     return humidity;
 }
 
-uint64_t Automato::macAddress(void) 
+uint64_t Automato::macAddress(void)
 {
     return ESP.getEfuseMac();
 }
@@ -89,13 +89,13 @@ bool Automato::remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value
 bool Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result)
 {
   setup_readpin(mb.payload, pin);
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     if (mb.payload.type == pt_readpinreply) {
       *result = mb.payload.pinval.state;
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -105,13 +105,13 @@ bool Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *resul
 bool Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
 {
   setup_readanalog(mb.payload, pin);
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     if (mb.payload.type == pt_readanalogreply) {
       *result = mb.payload.analogpinval.state;
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -123,9 +123,9 @@ bool Automato::remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t leng
   if (!setup_writemem(mb.payload, address, length, value))
     return false;
 
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
     return true;
-  else 
+  else
     return false;
 }
 
@@ -133,7 +133,7 @@ bool Automato::remoteMemRead(uint8_t network_id, uint16_t address, uint8_t lengt
 {
   setup_readmem(mb.payload, address, length);
 
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     // TODO: use the length of the return message to compute length of data?
     // as a belt-and-suspenders check.
@@ -145,7 +145,7 @@ bool Automato::remoteMemRead(uint8_t network_id, uint16_t address, uint8_t lengt
       memcpy(value, (void*)&mb.payload.readmemreply.data, length);
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -155,13 +155,13 @@ bool Automato::remoteMemRead(uint8_t network_id, uint16_t address, uint8_t lengt
 bool Automato::remoteTemperature(uint8_t network_id, float &temperature)
 {
   setup_readtemperature(mb.payload);
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     if (mb.payload.type == pt_readtemperaturereply) {
       temperature = mb.payload.f;
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -171,13 +171,13 @@ bool Automato::remoteTemperature(uint8_t network_id, float &temperature)
 bool Automato::remoteHumidity(uint8_t network_id, float &humidity)
 {
   setup_readhumidity(mb.payload);
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     if (mb.payload.type == pt_readhumidityreply) {
       humidity = mb.payload.f;
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -187,13 +187,13 @@ bool Automato::remoteHumidity(uint8_t network_id, float &humidity)
 bool Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
 {
   setup_readinfo(mb.payload);
-  if (sendPayload(network_id, mb.payload)) 
+  if (sendPayload(network_id, mb.payload))
   {
     if (mb.payload.type == pt_readinforeply) {
       memcpy((void*)&info, (void*)&mb.payload.remoteinfo, sizeof(RemoteInfo));
       return true;
     }
-    else 
+    else
       return false;
   }
   else
@@ -206,18 +206,18 @@ bool Automato::sendPayload(uint8_t network_id, Payload &p)
       uint8_t from_id;
 
       // mesh already does an Ack behind the scenes, but only between this
-      // node and the next.  So we have to do our own ack with the final 
+      // node and the next.  So we have to do our own ack with the final
       // destination.
       if (receiveMessage(from_id, mb))
       {
         return succeeded(mb.payload);
       }
-      else 
+      else
       {
         return false;
       }
   }
-  else 
+  else
   {
       return false;
   }
@@ -244,7 +244,7 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
 void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
 {
   switch (mb.payload.type) {
-    case pt_readpin: 
+    case pt_readpin:
       if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
         bool val = digitalRead(mb.payload.pin);
         setup_readpinreply(mb.payload, mb.payload.pin, val);
@@ -266,7 +266,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
           setup_fail(mb.payload, fc_invalid_pin_number);
           rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
         };
-      } else 
+      } else
       {
         // failed, pin ops not allowed.
         setup_fail(mb.payload, fc_operation_forbidden);
@@ -296,7 +296,7 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
         rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
       }
       break;
-    case pt_readanalog: 
+    case pt_readanalog:
       if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
         int val = analogRead(mb.payload.pin);
         setup_readanalogreply(mb.payload, mb.payload.pin, val);
@@ -379,5 +379,3 @@ void Automato::doRemoteControl()
     handleRcMessage(from_id, mb);
   }
 }
-
-
