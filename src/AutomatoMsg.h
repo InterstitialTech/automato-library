@@ -14,6 +14,7 @@ enum ResultCode {
     rc_invalid_mem_address,
     rc_invalid_mem_length,
     rc_invalid_reply_message,
+    rc_operation_forbidden,
     rc_reply_timeout,
     rc_rh_router_error_invalid_length,
     rc_rh_router_error_no_route,
