@@ -13,6 +13,7 @@ enum FailCode {
     fc_invalid_mem_address,
     fc_invalid_mem_length,
     fc_invalid_reply_message,
+    fc_operation_forbidden,
 };
 
 enum PayloadType {

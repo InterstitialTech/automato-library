@@ -29,11 +29,13 @@ private:
 
     RHMesh rhmesh;
 
+    bool allowRemotePinOutputs;
+
 protected:
 
 public:
-    Automato(uint8_t networkid, void *databuf, uint16_t datalen);
-    void init(float frequency = 915.0);
+    Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs, float frequency = 915.0);
+    void init();
 
     void *databuf;
     uint16_t datalen;
@@ -47,12 +49,13 @@ public:
     static uint64_t macAddress();
 
     // remote control functions.
-    bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);
+    bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);     // HIGH or LOW
     bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
-    bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);
+    bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);      // INPUT, OUTPUT, or INPUT_PULLUP
 
     bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
 
+    // 'raw' memory read/write.  use the macros below instead.
     bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
     bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
@@ -70,7 +73,7 @@ public:
     void handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };
 
-
+// read/write from the memory map on a remote Automato.
 #define remote_memwrite(dest, struct, field, val) remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
 #define remote_memread(dest, struct, field, val) remoteMemRead(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
 

@@ -18,18 +18,17 @@ uint8_t from_id;
 // see note in Automato.h
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
-Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen)
-    : rhmesh(rf95, networkid), databuf(databuf), datalen(datalen)
+Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs, float frequency)
+    : rhmesh(rf95, networkid), databuf(databuf), datalen(datalen), allowRemotePinOutputs(allowRemotePinOutputs)
 {
-}
-
-void Automato::init(float frequency)
-{
-    rf95.init();
-
     // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
     // specify by country?
-    rf95.setFrequency(915.0);
+    rf95.setFrequency(frequency);
+}
+
+void Automato::init()
+{
+    rf95.init();
 
     // user LED
     pinMode(PIN_LED, OUTPUT);
@@ -245,34 +244,6 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
 void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
 {
     switch (mb.payload.type) {
-        case pt_pinmode:
-            if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40) {
-                pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
-                setup_ack(mb.payload);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-            } else {
-                // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-            };
-            break;
-        case pt_writepin:
-            if (0 <= mb.payload.pinval.pin &&  mb.payload.pinval.pin < 40) {
-                if (mb.payload.pinval.state == 0) {
-                    digitalWrite(mb.payload.pinval.pin, LOW);
-                    setup_ack(mb.payload);
-                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-                } else if (mb.payload.pinval.state == 1) {
-                    digitalWrite(mb.payload.pinval.pin, HIGH);
-                    setup_ack(mb.payload);
-                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-                }
-            } else {
-                // failed, invalid address.
-                setup_fail(mb.payload, fc_invalid_pin_number);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
-            };
-            break;
         case pt_readpin:
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
                 bool val = digitalRead(mb.payload.pin);
@@ -283,6 +254,47 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 setup_fail(mb.payload, fc_invalid_pin_number);
                 rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
             };
+            break;
+        case pt_pinmode:
+            if (this->allowRemotePinOutputs) {
+                if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40) {
+                    pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
+                    setup_ack(mb.payload);
+                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                } else {
+                    // failed, invalid address.
+                    setup_fail(mb.payload, fc_invalid_pin_number);
+                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                };
+            } else
+            {
+                // failed, pin ops not allowed.
+                setup_fail(mb.payload, fc_operation_forbidden);
+                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            }
+            break;
+        case pt_writepin:
+            if (this->allowRemotePinOutputs) {
+                if (0 <= mb.payload.pinval.pin &&  mb.payload.pinval.pin < 40) {
+                    if (mb.payload.pinval.state == 0) {
+                        digitalWrite(mb.payload.pinval.pin, LOW);
+                        setup_ack(mb.payload);
+                        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                    } else if (mb.payload.pinval.state == 1) {
+                        digitalWrite(mb.payload.pinval.pin, HIGH);
+                        setup_ack(mb.payload);
+                        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                    }
+                } else {
+                    // failed, invalid address.
+                    setup_fail(mb.payload, fc_invalid_pin_number);
+                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                };
+            } else {
+                // failed, pin ops not allowed.
+                setup_fail(mb.payload, fc_operation_forbidden);
+                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            }
             break;
         case pt_readanalog:
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
@@ -367,5 +379,3 @@ void Automato::doRemoteControl()
         handleRcMessage(from_id, mb);
     }
 }
-
-
