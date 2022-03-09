@@ -21,8 +21,6 @@
 // so for now, declare it globally
 extern Adafruit_ILI9341 screen;
 
-AutomatoResult fromRHRouterCode(uint8_t rc);
-
 class Automato {
 
 private:

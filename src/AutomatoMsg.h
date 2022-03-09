@@ -119,13 +119,14 @@ struct msgbuf {
 
 class AutomatoResult {
 public:
-    // true for success/ok, false for error.
+    AutomatoResult();
+    AutomatoResult(ResultCode rc);
+    AutomatoResult(Payload &p);
+// true for success/ok, false for error.
     operator bool ();
     const char* as_string() const;
     ResultCode resultCode() const;
 
-    static AutomatoResult fromResultCode(ResultCode rc);
-    static AutomatoResult fromReply(Payload &p);
 private:
     ResultCode rc;
 };

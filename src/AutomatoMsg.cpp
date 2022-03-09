@@ -63,21 +63,25 @@ ResultCode AutomatoResult::resultCode() const
     this->rc;
 }
 
-AutomatoResult AutomatoResult::fromResultCode(ResultCode rc)
+
+AutomatoResult::AutomatoResult()
 {
-    AutomatoResult ar;
-    ar.rc = rc;
-    return ar;
+    this->rc = rc_ok;
 }
 
-AutomatoResult AutomatoResult::fromReply(Payload &p)
+AutomatoResult::AutomatoResult(ResultCode rc)
+{
+    this->rc = rc;
+}
+
+AutomatoResult::AutomatoResult(Payload &p)
 {
     if (p.type == pt_ack)
-        AutomatoResult::fromResultCode(rc_ok);
+        this->rc = rc_ok;
     else if (p.type == pt_fail)
-        AutomatoResult::fromResultCode((ResultCode)p.failcode);
+        this->rc = (ResultCode)p.failcode;
     else
-        AutomatoResult::fromResultCode(rc_invalid_reply_message);
+        this->rc = rc_invalid_reply_message;
 }
 
 
@@ -141,7 +145,7 @@ AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length)
     p.readmem.address = address;
     p.readmem.length = length;
 
-    return AutomatoResult::fromResultCode(rc_ok);
+    return AutomatoResult(rc_ok);
 
 }
 
@@ -152,10 +156,10 @@ AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem)
     {
         p.readmemreply.length = length;
         memcpy((void*)&p.readmemreply.data, mem, length);
-        return AutomatoResult::fromResultCode(rc_ok);
+        return AutomatoResult(rc_ok);
     }
     else
-        return AutomatoResult::fromResultCode(rc_invalid_mem_length);
+        return AutomatoResult(rc_invalid_mem_length);
 }
 AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
 {
@@ -165,10 +169,10 @@ AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void
         p.writemem.address = address;
         p.writemem.length = length;
         memcpy((void*)&p.writemem.data, mem, length);
-        return AutomatoResult::fromResultCode(rc_ok);
+        return AutomatoResult(rc_ok);
     }
     else
-        return AutomatoResult::fromResultCode(rc_invalid_mem_length);
+        return AutomatoResult(rc_invalid_mem_length);
 }
 
 void setup_readinfo(Payload &p)
