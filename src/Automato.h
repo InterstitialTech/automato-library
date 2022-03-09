@@ -67,12 +67,12 @@ public:
     AutomatoResult remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
 
     // receive and handle remote control messages.
-    void doRemoteControl();
+    AutomatoResult doRemoteControl();
 
     // lower level message sending and receiving.
     AutomatoResult sendPayload(uint8_t network_id, Payload &p);
     bool receiveMessage(uint8_t &from_id, msgbuf &mb);
-    void handleRcMessage(uint8_t &from_id, msgbuf &mb);
+    AutomatoResult handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };
 
 // read/write from the memory map on a remote Automato.

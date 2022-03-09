@@ -9,6 +9,7 @@ extern float protoVersion;
 
 enum ResultCode {
     rc_ok,
+    rc_no_message_received,
     rc_invalid_message_type,
     rc_invalid_pin_number,
     rc_invalid_mem_address,

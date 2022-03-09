@@ -12,6 +12,8 @@ const char* resultString(ResultCode rc)
     switch (rc) {
         case rc_ok:
             return "ok";
+        case rc_no_message_received:
+            return "no message received";
         case rc_invalid_message_type:
             return "invalid message type";
         case rc_invalid_pin_number:
@@ -153,7 +155,6 @@ AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem)
         return AutomatoResult::fromResultCode(rc_ok);
     }
     else
-        // invalid length.
         return AutomatoResult::fromResultCode(rc_invalid_mem_length);
 }
 AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
@@ -167,7 +168,6 @@ AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void
         return AutomatoResult::fromResultCode(rc_ok);
     }
     else
-        // invalid length.
         return AutomatoResult::fromResultCode(rc_invalid_mem_length);
 }
 

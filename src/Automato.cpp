@@ -262,18 +262,19 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
     }
 }
 
-void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
+
+AutomatoResult Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
 {
     switch (mb.payload.type) {
         case pt_readpin:
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
                 bool val = digitalRead(mb.payload.pin);
                 setup_readpinreply(mb.payload, mb.payload.pin, val);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             } else {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_pin_number);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             };
             break;
         case pt_pinmode:
@@ -281,17 +282,17 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                 if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40) {
                     pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
                     setup_ack(mb.payload);
-                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                    return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
                 } else {
                     // failed, invalid address.
                     setup_fail(mb.payload, rc_invalid_pin_number);
-                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                    return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
                 };
             } else
             {
                 // failed, pin ops not allowed.
                 setup_fail(mb.payload, rc_operation_forbidden);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             }
             break;
         case pt_writepin:
@@ -300,32 +301,32 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
                     if (mb.payload.pinval.state == 0) {
                         digitalWrite(mb.payload.pinval.pin, LOW);
                         setup_ack(mb.payload);
-                        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                        return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
                     } else if (mb.payload.pinval.state == 1) {
                         digitalWrite(mb.payload.pinval.pin, HIGH);
                         setup_ack(mb.payload);
-                        rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                        return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
                     }
                 } else {
                     // failed, invalid address.
                     setup_fail(mb.payload, rc_invalid_pin_number);
-                    rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                    return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
                 };
             } else {
                 // failed, pin ops not allowed.
                 setup_fail(mb.payload, rc_operation_forbidden);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             }
             break;
         case pt_readanalog:
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
                 int val = analogRead(mb.payload.pin);
                 setup_readanalogreply(mb.payload, mb.payload.pin, val);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             } else {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_pin_number);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             };
             break;
         case pt_readmem:
@@ -333,18 +334,18 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_mem_address);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
                 setup_fail(mb.payload, rc_invalid_mem_length);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             } else {
                 // build reply and send.
                 setup_readmemreply(mb.payload,
                     mb.payload.readmem.length,
                     databuf + mb.payload.readmem.address);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             };
             break;
         case pt_writemem:
@@ -352,33 +353,33 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_mem_address);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
                 setup_fail(mb.payload, rc_invalid_mem_length);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             } else {
                 memcpy(this->databuf + mb.payload.writemem.address,
                     mb.payload.writemem.data,
                     mb.payload.writemem.length);
                 setup_ack(mb.payload);
-                rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+                return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             };
             break;
         case pt_readinfo:
             setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen);
-            rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             break;
         case pt_readhumidity:
             readTempHumidity();
             setup_readhumidityreply(mb.payload, getHumidity());
-            rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             break;
         case pt_readtemperature:
             readTempHumidity();
             setup_readtemperaturereply(mb.payload, getTemperature());
-            rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             break;
         // error!  These should only be received in response to a request.
         case pt_readhumidityreply:
@@ -388,15 +389,17 @@ void Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
         default:
             // failed, unsupported message type.
             setup_fail(mb.payload, rc_invalid_message_type);
-            rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id);
+            return fromRHRouterCode(rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), from_id));
             break;
     };
 }
 
 // receives and handles remote control messages.
-void Automato::doRemoteControl()
+AutomatoResult Automato::doRemoteControl()
 {
     if (receiveMessage(from_id, mb)) {
-        handleRcMessage(from_id, mb);
+        return handleRcMessage(from_id, mb);
     }
+    else
+        return AutomatoResult::fromResultCode(rc_no_message_received);
 }
