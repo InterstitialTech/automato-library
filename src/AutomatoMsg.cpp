@@ -37,7 +37,6 @@ void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state)
   p.type = pt_readpinreply;
   p.pinval.pin = pin;
   p.pinval.state = state;
-
 }
 
 void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
