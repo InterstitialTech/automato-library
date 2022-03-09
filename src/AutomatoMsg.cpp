@@ -1,62 +1,320 @@
 #include <AutomatoMsg.h>
 
-bool succeeded(message &m)
+float protoVersion(0.1);
+
+bool succeeded(Payload &p)
 {
-  return m.type == mt_ack && m.payload == ac_success;
+    return p.type != pt_fail;
 }
 
-void setupMessage(message &m, 
-  uint64_t frommac,
-  uint64_t tomac,
-  char type,
-  int  address,
-  int  length,
-  int  payload) 
+const char* failString(FailCode fc)
 {
-  memcpy((char*)m.frommac, (const char*)&frommac, 6);
-  memcpy((char*)m.tomac, (const char*)&tomac, 6);
-  m.type = type;
-  m.address = address;
-  m.length = length;
-  m.payload = payload;
+    switch (fc) {
+        case fc_invalid_message_type:
+            return "invalid message type";
+        case fc_invalid_pin_number:
+            return "invalid pin number";
+        case fc_invalid_mem_address:
+            return "invalid mem address";
+        case fc_invalid_mem_length:
+            return "invalid mem length";
+        default:
+            return "unknown error code";
+    }
 }
 
-void printMessage(message &m) 
+void setup_ack(Payload &p)
 {
-  Serial.println("message");
+    p.type = pt_ack;
+}
 
-  Serial.print("frommac: ");
-  uint64_t mac = 0;
-  memcpy(((char*)&mac), &m.frommac, 6); 
-  Serial.println(mac);
+void setup_fail(Payload &p, FailCode fc)
+{
+    p.type = pt_fail;
+    p.failcode = fc;
+}
 
-  Serial.print("tomac: ");
-  mac = 0;
-  memcpy(((char*)&mac), &m.tomac, 6); 
-  Serial.println(mac);
+void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode)
+{
+    p.type = pt_pinmode;
+    p.pinmode.pin = pin;
+    p.pinmode.mode = mode;
+}
 
-  Serial.print("type: ");
-  switch ((int)m.type) {
-    case mt_read: 
-      Serial.println("mt_read");
-      break;
-    case mt_write: 
-      Serial.println("mt_write");
-      break;
-    case mt_ack: 
-      Serial.println("mt_ack");
-      break;
-    default:
-      Serial.print("unknown message type: ");
-      Serial.println((int)m.type);
-      break;
-  }
-
-  Serial.print("address: ");
-  Serial.println(m.address);
-  Serial.print("payload: ");
-  Serial.println(m.payload);
+void setup_readpin(Payload &p, uint8_t pin)
+{
+    p.type = pt_readpin;
+    p.pin = pin;
 }
 
 
+void setup_readpinreply(Payload &p, uint8_t pin, uint8_t state)
+{
+    p.type = pt_readpinreply;
+    p.pinval.pin = pin;
+    p.pinval.state = state;
 
+}
+
+void setup_writepin(Payload &p, uint8_t pin, uint8_t state)
+{
+    p.type = pt_writepin;
+    p.pinval.pin = pin;
+    p.pinval.state = state;
+}
+
+void setup_readanalog(Payload &p, uint8_t pin)
+{
+    p.type = pt_readanalog;
+    p.pin = pin;
+}
+
+void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state)
+{
+    p.type = pt_readanalogreply;
+    p.analogpinval.pin = pin;
+    p.analogpinval.state = state;
+}
+
+void setup_readmem(Payload &p, uint16_t address, uint8_t length)
+{
+    p.type = pt_readmem;
+    p.readmem.address = address;
+    p.readmem.length = length;
+}
+
+bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
+{
+    p.type = pt_readmemreply;
+    if (length <= MAX_READMEM)
+    {
+        p.readmemreply.length = length;
+        memcpy((void*)&p.readmemreply.data, mem, length);
+        return true;
+    }
+    else
+        // invalid length.
+        return false;
+}
+bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
+{
+    p.type = pt_writemem;
+    if (length <= MAX_WRITEMEM)
+    {
+        p.writemem.address = address;
+        p.writemem.length = length;
+        memcpy((void*)&p.writemem.data, mem, length);
+        return true;
+    }
+    else
+        // invalid length.
+        return false;
+}
+
+void setup_readinfo(Payload &p)
+{
+    p.type = pt_readinfo;
+}
+
+void setup_readinforeply(Payload &p,
+    float protoversion,
+    uint64_t macAddress,
+    uint16_t datalen)
+{
+    p.type = pt_readinforeply;
+    p.remoteinfo.protoversion = protoversion;
+    p.remoteinfo.macAddress = macAddress;
+    p.remoteinfo.datalen = datalen;
+}
+
+void setup_readhumidity(Payload &p)
+{
+    p.type = pt_readhumidity;
+}
+
+void setup_readhumidityreply(Payload &p, float humidity)
+{
+    p.type = pt_readhumidityreply;
+    p.f = humidity;
+}
+
+void setup_readtemperature(Payload &p)
+{
+    p.type = pt_readtemperature;
+}
+
+void setup_readtemperaturereply(Payload &p, float temperature)
+{
+    p.type = pt_readtemperaturereply;
+    p.f = temperature;
+}
+
+uint8_t payloadSize(Payload &p) {
+    switch (p.type) {
+        case pt_ack:
+            return sizeof(uint8_t);
+        case pt_fail:
+            return sizeof(uint8_t);
+        case pt_pinmode:
+            return sizeof(uint8_t) + sizeof(Pinmode);
+        case pt_readpin:
+            return sizeof(uint8_t) + sizeof(uint8_t);
+        case pt_readpinreply:
+            return sizeof(uint8_t) + sizeof(Pinval);
+        case pt_writepin:
+            return sizeof(uint8_t) + sizeof(Pinval);
+        case pt_readanalog:
+            return sizeof(uint8_t) + sizeof(uint8_t);
+        case pt_readanalogreply:
+            return sizeof(uint8_t) + sizeof(AnalogPinval);
+        case pt_readmem:
+            return sizeof(uint8_t) + sizeof(Readmem);
+        case pt_readmemreply:
+            return sizeof(uint8_t) + sizeof(uint8_t) + p.readmemreply.length;
+        case pt_writemem:
+            return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t) + p.readmemreply.length;
+        case pt_readinfo:
+            return sizeof(uint8_t);
+        case pt_readinforeply:
+            return sizeof(uint8_t) + sizeof(RemoteInfo);
+        case pt_readhumidity:
+            return sizeof(uint8_t);
+        case pt_readhumidityreply:
+            return sizeof(uint8_t)+ sizeof(float);
+        case pt_readtemperature:
+            return sizeof(uint8_t);
+        case pt_readtemperaturereply:
+            return sizeof(uint8_t)+ sizeof(float);
+        default:
+            return 0;
+    }
+}
+
+void printPayload(Payload &p)
+{
+    Serial.println("message payload");
+
+    Serial.print("type: ");
+    Serial.print(p.type);
+    Serial.print(" ");
+
+    switch ((int)p.type) {
+        case pt_ack:
+            Serial.println("pt_ack");
+            break;
+        case pt_fail:
+            Serial.print("pt_fail: ");
+            switch (p.failcode) {
+fc_invalid_message_type:
+                Serial.println("fc_invalid_message_type");
+                break;
+fc_invalid_pin_number:
+                Serial.println("fc_invalid_pin_number");
+                break;
+                default:
+                    Serial.print("unknown failcode: ");
+                    Serial.println(p.failcode);
+                    break;
+            }
+            break;
+        case pt_pinmode:
+            Serial.println("pt_pinmode");
+            Serial.print("pin: ");
+            Serial.println(p.pinmode.pin);
+            Serial.print("mode: ");
+            Serial.println(p.pinmode.mode);
+            break;
+        case pt_readpin:
+            Serial.println("pt_readpin");
+            Serial.print("pin: ");
+            Serial.println(p.pin);
+            break;
+        case pt_readpinreply:
+            Serial.println("pt_readpinreply");
+            Serial.print("pin: ");
+            Serial.println(p.pinval.pin);
+            Serial.print("state: ");
+            Serial.println(p.pinval.state);
+            break;
+        case pt_writepin:
+            Serial.println("pt_writepin");
+            Serial.print("pin: ");
+            Serial.println(p.pinval.pin);
+            Serial.print("state: ");
+            Serial.println(p.pinval.state);
+            break;
+        case pt_readanalog:
+            Serial.println("pt_readanalog");
+            Serial.print("pin: ");
+            Serial.println(p.pin);
+            break;
+        case pt_readanalogreply:
+            Serial.println("pt_readanalogreply");
+            Serial.print("pin: ");
+            Serial.println(p.pin);
+            Serial.print("state: ");
+            Serial.println(p.analogpinval.state);
+            break;
+        case pt_readmem:
+            Serial.println("pt_readmem");
+            Serial.print("address");
+            Serial.println(p.readmem.address);
+            Serial.print("length");
+            Serial.println(p.readmem.length);
+            break;
+        case pt_readmemreply:
+            Serial.println("pt_readmemreply");
+            Serial.print("length: ");
+            Serial.println(p.readmemreply.length);
+            Serial.print("mem: ");
+            for (int i = 0; i < p.readmemreply.length; ++i) {
+                Serial.print(p.readmemreply.data[i], HEX);
+            }
+            Serial.println();
+            break;
+        case pt_writemem:
+            Serial.println("pt_writemem");
+            Serial.print("address");
+            Serial.println(p.writemem.address);
+            Serial.print("length");
+            Serial.println(p.writemem.length);
+            Serial.print("mem: ");
+            for (int i = 0; i < p.readmemreply.length; ++i) {
+                Serial.print(p.writemem.data[i], HEX);
+            }
+            Serial.println();
+            break;
+        case pt_readinfo:
+            Serial.println("pt_readinfo");
+            break;
+        case pt_readinforeply:
+            Serial.println("pt_readinforeply");
+            Serial.print("protoversion:");
+            Serial.println(p.remoteinfo.protoversion);
+            Serial.print("macAddress:");
+            Serial.println(p.remoteinfo.macAddress);
+            Serial.print("datalen:");
+            Serial.println(p.remoteinfo.datalen);
+            break;
+        case pt_readhumidity:
+            Serial.println("pt_readhumidity");
+            break;
+        case pt_readhumidityreply:
+            Serial.println("pt_readhumidityreply");
+            Serial.print("humidity:");
+            Serial.println(p.f);
+            break;
+        case pt_readtemperature:
+            Serial.println("pt_readtemperature");
+            break;
+        case pt_readtemperaturereply:
+            Serial.println("pt_readtemperaturereply");
+            Serial.print("temperature:");
+            Serial.println(p.f);
+            break;
+        default:
+            Serial.print("unknown message type: ");
+            Serial.println((int)p.type);
+            break;
+    }
+}
