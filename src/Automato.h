@@ -34,8 +34,8 @@ private:
 protected:
 
 public:
-    Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs, float frequency = 915.0);
-    void init();
+    Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs);
+    void init(float frequency = 915.0, uint8_t power = 13);
 
     void *databuf;
     uint16_t datalen;

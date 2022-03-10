@@ -39,17 +39,19 @@ AutomatoResult arFromRc(uint8_t rc)
     }
 }
 
-Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs, float frequency)
+Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs)
     : rhmesh(rf95, networkid), databuf(databuf), datalen(datalen), allowRemotePinOutputs(allowRemotePinOutputs)
 {
+}
+
+void Automato::init(float frequency, uint8_t power)
+{
+    rf95.init();
+
     // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
     // specify by country?
     rf95.setFrequency(frequency);
-}
-
-void Automato::init()
-{
-    rf95.init();
+    rf95.setTxPower(power);
 
     // user LED
     pinMode(PIN_LED, OUTPUT);
