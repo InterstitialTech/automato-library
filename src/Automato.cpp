@@ -98,19 +98,19 @@ uint64_t Automato::macAddress(void)
 AutomatoResult Automato::remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode)
 {
     setup_pinmode(mb.payload, pin, mode);
-    return sendRequestPayload(network_id, mb);
+    return sendRequest(network_id, mb);
 }
 
 AutomatoResult Automato::remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value)
 {
     setup_writepin(mb.payload, pin, value);
-    return sendRequestPayload(network_id, mb);
+    return sendRequest(network_id, mb);
 }
 
 AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result)
 {
     setup_readpin(mb.payload, pin);
-    auto ar = sendRequestPayload(network_id, mb);
+    auto ar = sendRequest(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readpinreply) {
@@ -127,7 +127,7 @@ AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint
 AutomatoResult Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
 {
     setup_readanalog(mb.payload, pin);
-    auto ar = sendRequestPayload(network_id, mb);
+    auto ar = sendRequest(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readanalogreply) {
@@ -145,7 +145,7 @@ AutomatoResult Automato::remoteMemWrite(uint8_t network_id, uint16_t address, ui
 {
     AutomatoResult ar;
     bool tmp = (ar = setup_writemem(mb.payload, address, length, value))
-        && (ar = sendRequestPayload(network_id, mb));
+        && (ar = sendRequest(network_id, mb));
 
     return ar;
 }
@@ -154,7 +154,7 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 {
     AutomatoResult ar;
 
-    if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequestPayload(network_id, mb)))
+    if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequest(network_id, mb)))
     {
         // TODO: use the length of the return message to compute length of data?
         // as a belt-and-suspenders check.
@@ -176,7 +176,7 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperature)
 {
     setup_readtemperature(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb);
+    auto ar = sendRequest(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readtemperaturereply) {
@@ -193,7 +193,7 @@ AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperatur
 AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 {
     setup_readhumidity(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb);
+    auto ar = sendRequest(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readhumidityreply) {
@@ -210,7 +210,7 @@ AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
 {
     setup_readinfo(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb);
+    auto ar = sendRequest(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readinforeply) {
@@ -224,7 +224,7 @@ AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info
         return ar;
 }
 
-AutomatoResult Automato::sendRequestPayload(uint8_t network_id, Msgbuf &mb)
+AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
 {
     uint8_t err;
     if ((err = rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), network_id)) == RH_ROUTER_ERROR_NONE) {
@@ -248,7 +248,7 @@ AutomatoResult Automato::sendRequestPayload(uint8_t network_id, Msgbuf &mb)
     }
 }
 
-AutomatoResult Automato::sendReplyPayload(uint8_t network_id, Payload &p)
+AutomatoResult Automato::sendReply(uint8_t network_id, Payload &p)
 {
     return arFromRc(rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), network_id));
 }
@@ -276,28 +276,28 @@ AutomatoResult Automato::handleRcMessage(uint8_t &from_id, Msgbuf &mb)
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
                 bool val = digitalRead(mb.payload.pin);
                 setup_readpinreply(mb.payload, mb.payload.pin, val);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             } else {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_pin_number);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             };
         case pt_pinmode:
             if (this->allowRemotePinOutputs) {
                 if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40) {
                     pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
                     setup_ack(mb.payload);
-                    return sendReplyPayload(from_id, mb.payload);
+                    return sendReply(from_id, mb.payload);
                 } else {
                     // failed, invalid address.
                     setup_fail(mb.payload, rc_invalid_pin_number);
-                    return sendReplyPayload(from_id, mb.payload);
+                    return sendReply(from_id, mb.payload);
                 };
             } else
             {
                 // failed, pin ops not allowed.
                 setup_fail(mb.payload, rc_operation_forbidden);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             }
         case pt_writepin:
             if (this->allowRemotePinOutputs) {
@@ -305,79 +305,79 @@ AutomatoResult Automato::handleRcMessage(uint8_t &from_id, Msgbuf &mb)
                     if (mb.payload.pinval.state == 0) {
                         digitalWrite(mb.payload.pinval.pin, LOW);
                         setup_ack(mb.payload);
-                        return sendReplyPayload(from_id, mb.payload);
+                        return sendReply(from_id, mb.payload);
                     } else if (mb.payload.pinval.state == 1) {
                         digitalWrite(mb.payload.pinval.pin, HIGH);
                         setup_ack(mb.payload);
-                        return sendReplyPayload(from_id, mb.payload);
+                        return sendReply(from_id, mb.payload);
                     }
                 } else {
                     // failed, invalid address.
                     setup_fail(mb.payload, rc_invalid_pin_number);
-                    return sendReplyPayload(from_id, mb.payload);
+                    return sendReply(from_id, mb.payload);
                 };
             } else {
                 // failed, pin ops not allowed.
                 setup_fail(mb.payload, rc_operation_forbidden);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             }
         case pt_readanalog:
             if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
                 int val = analogRead(mb.payload.pin);
                 setup_readanalogreply(mb.payload, mb.payload.pin, val);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             } else {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_pin_number);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             };
         case pt_readmem:
             // range check.
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_mem_address);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
                 setup_fail(mb.payload, rc_invalid_mem_length);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             } else {
                 // build reply and send.
                 setup_readmemreply(mb.payload,
                     mb.payload.readmem.length,
                     databuf + mb.payload.readmem.address);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             };
         case pt_writemem:
             // range check.
             if (mb.payload.readmem.address >= this->datalen) {
                 // failed, invalid address.
                 setup_fail(mb.payload, rc_invalid_mem_address);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             }
             else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
                 // failed, invalid length.
                 setup_fail(mb.payload, rc_invalid_mem_length);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             } else {
                 memcpy(this->databuf + mb.payload.writemem.address,
                     mb.payload.writemem.data,
                     mb.payload.writemem.length);
                 setup_ack(mb.payload);
-                return sendReplyPayload(from_id, mb.payload);
+                return sendReply(from_id, mb.payload);
             };
         case pt_readinfo:
             setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen);
-            return sendReplyPayload(from_id, mb.payload);
+            return sendReply(from_id, mb.payload);
         case pt_readhumidity:
             readTempHumidity();
             setup_readhumidityreply(mb.payload, getHumidity());
-            return sendReplyPayload(from_id, mb.payload);
+            return sendReply(from_id, mb.payload);
         case pt_readtemperature:
             readTempHumidity();
             setup_readtemperaturereply(mb.payload, getTemperature());
-            return sendReplyPayload(from_id, mb.payload);
+            return sendReply(from_id, mb.payload);
         // error!  These should only be received in response to a request.
         case pt_readhumidityreply:
         case pt_readtemperaturereply:
@@ -386,7 +386,7 @@ AutomatoResult Automato::handleRcMessage(uint8_t &from_id, Msgbuf &mb)
         default:
             // failed, unsupported message type.
             setup_fail(mb.payload, rc_invalid_message_type);
-            return sendReplyPayload(from_id, mb.payload);
+            return sendReply(from_id, mb.payload);
     };
 }
 

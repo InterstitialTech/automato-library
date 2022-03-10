@@ -68,8 +68,8 @@ public:
     AutomatoResult doRemoteControl();
 
     // lower level message sending and receiving.
-    AutomatoResult sendRequestPayload(uint8_t network_id, Msgbuf &mb);
-    AutomatoResult sendReplyPayload(uint8_t network_id, Payload &p);
+    AutomatoResult sendRequest(uint8_t network_id, Msgbuf &mb);
+    AutomatoResult sendReply(uint8_t network_id, Payload &p);
     bool receiveMessage(uint8_t &from_id, Msgbuf &mb);
     AutomatoResult handleRcMessage(uint8_t &from_id, Msgbuf &mb);
 };
