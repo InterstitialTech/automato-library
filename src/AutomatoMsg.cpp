@@ -119,7 +119,6 @@ AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length)
     p.readmem.length = length;
 
     return AutomatoResult(rc_ok);
-
 }
 
 AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem)

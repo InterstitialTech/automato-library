@@ -104,7 +104,7 @@ struct Msgbuf {
 } __attribute__((packed));
 
 // --------------------------------------------------------
-// message utility functions.
+// message functions.
 // --------------------------------------------------------
 
 uint8_t payloadSize(Payload &p);
