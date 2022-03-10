@@ -53,11 +53,11 @@ bool isReply(PayloadType pt)
 AutomatoResult ArFromReply(Payload &p)
 {
     if (p.type == pt_fail)
-      return AutomatoResult((ResultCode)p.failcode);
-    else if (isReply((PayloadType)p.type)) 
-      return AutomatoResult(rc_ok);
+        return AutomatoResult((ResultCode)p.failcode);
+    else if (isReply((PayloadType)p.type))
+        return AutomatoResult(rc_ok);
     else
-      return AutomatoResult(rc_invalid_reply_message);
+        return AutomatoResult(rc_invalid_reply_message);
 }
 
 void setup_ack(Payload &p)

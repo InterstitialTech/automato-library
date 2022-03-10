@@ -98,19 +98,19 @@ uint64_t Automato::macAddress(void)
 AutomatoResult Automato::remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode)
 {
     setup_pinmode(mb.payload, pin, mode);
-    return sendRequestPayload(network_id, mb.payload);
+    return sendRequestPayload(network_id, mb);
 }
 
 AutomatoResult Automato::remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value)
 {
     setup_writepin(mb.payload, pin, value);
-    return sendRequestPayload(network_id, mb.payload);
+    return sendRequestPayload(network_id, mb);
 }
 
 AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result)
 {
     setup_readpin(mb.payload, pin);
-    auto ar = sendRequestPayload(network_id, mb.payload);
+    auto ar = sendRequestPayload(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readpinreply) {
@@ -127,7 +127,7 @@ AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint
 AutomatoResult Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
 {
     setup_readanalog(mb.payload, pin);
-    auto ar = sendRequestPayload(network_id, mb.payload);
+    auto ar = sendRequestPayload(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readanalogreply) {
@@ -145,7 +145,7 @@ AutomatoResult Automato::remoteMemWrite(uint8_t network_id, uint16_t address, ui
 {
     AutomatoResult ar;
     bool tmp = (ar = setup_writemem(mb.payload, address, length, value))
-        && (ar = sendRequestPayload(network_id, mb.payload));
+        && (ar = sendRequestPayload(network_id, mb));
 
     return ar;
 }
@@ -154,7 +154,7 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 {
     AutomatoResult ar;
 
-    if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequestPayload(network_id, mb.payload)))
+    if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequestPayload(network_id, mb)))
     {
         // TODO: use the length of the return message to compute length of data?
         // as a belt-and-suspenders check.
@@ -176,7 +176,7 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperature)
 {
     setup_readtemperature(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb.payload);
+    auto ar = sendRequestPayload(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readtemperaturereply) {
@@ -193,7 +193,7 @@ AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperatur
 AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 {
     setup_readhumidity(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb.payload);
+    auto ar = sendRequestPayload(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readhumidityreply) {
@@ -210,7 +210,7 @@ AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
 AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
 {
     setup_readinfo(mb.payload);
-    auto ar = sendRequestPayload(network_id, mb.payload);
+    auto ar = sendRequestPayload(network_id, mb);
     if (ar)
     {
         if (mb.payload.type == pt_readinforeply) {
