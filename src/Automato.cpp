@@ -12,7 +12,7 @@
 
 RH_RF95 rf95(PIN_LORA_CS, PIN_LORA_IRQ); // Slave select, interrupt pin for Automato Sensor Module.
 
-msgbuf mb;
+Msgbuf mb;
 uint8_t from_id;
 
 // see note in Automato.h
@@ -224,10 +224,10 @@ AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info
         return ar;
 }
 
-AutomatoResult Automato::sendRequestPayload(uint8_t network_id, Payload &p)
+AutomatoResult Automato::sendRequestPayload(uint8_t network_id, Msgbuf &mb)
 {
     uint8_t err;
-    if ((err = rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), network_id)) == RH_ROUTER_ERROR_NONE) {
+    if ((err = rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), network_id)) == RH_ROUTER_ERROR_NONE) {
         uint8_t from_id;
 
         // mesh already does an Ack behind the scenes, but only between this
@@ -253,7 +253,7 @@ AutomatoResult Automato::sendReplyPayload(uint8_t network_id, Payload &p)
     return arFromRc(rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), network_id));
 }
 
-bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
+bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb)
 {
     uint8_t len = sizeof(mb.buf); // TODO hardcode for speed.
     // TODO switch to non-timeout?
@@ -269,7 +269,7 @@ bool Automato::receiveMessage(uint8_t &from_id, msgbuf &mb)
 }
 
 
-AutomatoResult Automato::handleRcMessage(uint8_t &from_id, msgbuf &mb)
+AutomatoResult Automato::handleRcMessage(uint8_t &from_id, Msgbuf &mb)
 {
     switch (mb.payload.type) {
         case pt_readpin:

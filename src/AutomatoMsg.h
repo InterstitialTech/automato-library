@@ -95,7 +95,7 @@ struct Message {
     Payload data;
 } __attribute__((packed));
 
-struct msgbuf {
+struct Msgbuf {
     union {
         uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
         Message msg;     // as Message for router-less
