@@ -24,6 +24,8 @@ const char* resultString(ResultCode rc)
             return "invalid mem length";
         case rc_invalid_reply_message:
             return "expected a reply message";
+        case rc_operation_forbidden:
+            return "operation forbidden";
         case rc_reply_timeout:
             return "timeout waiting for reply message";
         case rc_rh_router_error_invalid_length:
@@ -43,7 +45,6 @@ const char* resultString(ResultCode rc)
     }
 }
 
-
 // --------------------------------------------------------------------------------------------------
 
 AutomatoResult::operator bool () {
@@ -60,7 +61,7 @@ const char* AutomatoResult::as_string() const
 
 ResultCode AutomatoResult::resultCode() const
 {
-    this->rc;
+    return this->rc;
 }
 
 
@@ -76,12 +77,78 @@ AutomatoResult::AutomatoResult(ResultCode rc)
 
 AutomatoResult::AutomatoResult(Payload &p)
 {
-    if (p.type == pt_ack)
-        this->rc = rc_ok;
-    else if (p.type == pt_fail)
-        this->rc = (ResultCode)p.failcode;
-    else
-        this->rc = rc_invalid_reply_message;
+    switch (p.type) {
+        case pt_ack:
+            this->rc = rc_ok;
+            break;
+
+        case pt_fail:
+            this->rc = (ResultCode)p.failcode;
+            break;
+
+        case pt_pinmode:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readpin:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readpinreply:
+            this->rc = rc_ok;
+            break;
+
+        case pt_writepin:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readmem:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readmemreply:
+            this->rc = rc_ok;
+            break;
+
+        case pt_writemem:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readinfo:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readinforeply:
+            this->rc = rc_ok;
+            break;
+
+        case pt_readhumidity:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readhumidityreply:
+            this->rc = rc_ok;
+            break;
+
+        case pt_readtemperature:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readtemperaturereply:
+            this->rc = rc_ok;
+            break;
+
+        case pt_readanalog:
+            this->rc = rc_invalid_reply_message;
+            break;
+
+        case pt_readanalogreply:
+            this->rc = rc_ok;
+            break;
+        default:
+            this->rc = rc_invalid_reply_message;
+            break;
+    }
 }
 
 
