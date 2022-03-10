@@ -2,19 +2,14 @@
 #define Automatomsg_hh_INCLUDED
 
 #include <Arduino.h>
-// #include <Wire.h>
 #include <RH_RF95.h>
+#include <AutomatoResult.h>
 
 extern float protoVersion;
 
-enum FailCode {
-    fc_invalid_message_type,
-    fc_invalid_pin_number,
-    fc_invalid_mem_address,
-    fc_invalid_mem_length,
-    fc_invalid_reply_message,
-    fc_operation_forbidden,
-};
+// --------------------------------------------------------
+// message structs.
+// --------------------------------------------------------
 
 enum PayloadType {
     pt_ack,
@@ -103,16 +98,22 @@ struct Message {
 struct msgbuf {
     union {
         uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-        Message msg;            // as Message for router-less
+        Message msg;     // as Message for router-less
         Payload payload; // as Payload for RHMesh
     };
 } __attribute__((packed));
 
+// --------------------------------------------------------
+// message functions.
+// --------------------------------------------------------
+
 uint8_t payloadSize(Payload &p);
 void printPayload(Payload &p);
+bool isReply(PayloadType pt);
+AutomatoResult ArFromReply(Payload &p);
 
 void setup_ack(Payload &p);
-void setup_fail(Payload &p, FailCode fc);
+void setup_fail(Payload &p, ResultCode rc);
 
 void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode);
 void setup_readpin(Payload &p, uint8_t pin);
@@ -122,9 +123,9 @@ void setup_writepin(Payload &p, uint8_t pin, uint8_t state);
 void setup_readanalog(Payload &p, uint8_t pin);
 void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state);
 
-void setup_readmem(Payload &p, uint16_t address, uint8_t length);
-bool setup_readmemreply(Payload &p, uint8_t length, void* mem);
-bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem);
+AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length);
+AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem);
+AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem);
 
 void setup_readhumidity(Payload &p);
 void setup_readhumidityreply(Payload &p, float humidity);
@@ -140,6 +141,6 @@ void setup_readinforeply(Payload &p,
 
 bool succeeded(Payload &p);
 
-const char* failString(FailCode fc);
+const char* resultString(ResultCode rc);
 
 #endif // Automatomsg_hh_INCLUDED

@@ -49,28 +49,29 @@ public:
     static uint64_t macAddress();
 
     // remote control functions.
-    bool remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);     // HIGH or LOW
-    bool remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
-    bool remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);      // INPUT, OUTPUT, or INPUT_PULLUP
+    AutomatoResult remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);    // HIGH or LOW
+    AutomatoResult remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
+    AutomatoResult remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);    // INPUT, OUTPUT, or INPUT_PULLUP
 
-    bool remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
+    AutomatoResult remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
 
     // 'raw' memory read/write.  use the macros below instead.
-    bool remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
-    bool remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    AutomatoResult remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
+    AutomatoResult remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
-    bool remoteTemperature(uint8_t network_id, float &temperature);
-    bool remoteHumidity(uint8_t network_id, float &humidity);
 
-    bool remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
+    AutomatoResult remoteTemperature(uint8_t network_id, float &temperature);
+    AutomatoResult remoteHumidity(uint8_t network_id, float &humidity);
+    AutomatoResult remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
 
     // receive and handle remote control messages.
-    void doRemoteControl();
+    AutomatoResult doRemoteControl();
 
     // lower level message sending and receiving.
-    bool sendPayload(uint8_t network_id, Payload &p);
+    AutomatoResult sendRequestPayload(uint8_t network_id, Payload &p);
+    AutomatoResult sendReplyPayload(uint8_t network_id, Payload &p);
     bool receiveMessage(uint8_t &from_id, msgbuf &mb);
-    void handleRcMessage(uint8_t &from_id, msgbuf &mb);
+    AutomatoResult handleRcMessage(uint8_t &from_id, msgbuf &mb);
 };
 
 // read/write from the memory map on a remote Automato.

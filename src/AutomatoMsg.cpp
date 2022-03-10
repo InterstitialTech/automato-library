@@ -7,20 +7,57 @@ bool succeeded(Payload &p)
     return p.type != pt_fail;
 }
 
-const char* failString(FailCode fc)
+bool isReply(PayloadType pt)
 {
-    switch (fc) {
-        case fc_invalid_message_type:
-            return "invalid message type";
-        case fc_invalid_pin_number:
-            return "invalid pin number";
-        case fc_invalid_mem_address:
-            return "invalid mem address";
-        case fc_invalid_mem_length:
-            return "invalid mem length";
+    switch (pt) {
+        case pt_ack:
+            return true;
+        case pt_fail:
+            // a failure is a reply, just not the one we wanted
+            return true;
+        case pt_pinmode:
+            return false;
+        case pt_readpin:
+            return false;
+        case pt_readpinreply:
+            return true;
+        case pt_writepin:
+            return false;
+        case pt_readmem:
+            return false;
+        case pt_readmemreply:
+            return true;
+        case pt_writemem:
+            return false;
+        case pt_readinfo:
+            return false;
+        case pt_readinforeply:
+            return true;
+        case pt_readhumidity:
+            return false;
+        case pt_readhumidityreply:
+            return true;
+        case pt_readtemperature:
+            return false;
+        case pt_readtemperaturereply:
+            return true;
+        case pt_readanalog:
+            return false;
+        case pt_readanalogreply:
+            return true;
         default:
-            return "unknown error code";
+            return false;
     }
+}
+
+AutomatoResult ArFromReply(Payload &p)
+{
+    if (p.type == pt_fail)
+      return AutomatoResult((ResultCode)p.failcode);
+    else if (isReply((PayloadType)p.type)) 
+      return AutomatoResult(rc_ok);
+    else
+      return AutomatoResult(rc_invalid_reply_message);
 }
 
 void setup_ack(Payload &p)
@@ -28,10 +65,10 @@ void setup_ack(Payload &p)
     p.type = pt_ack;
 }
 
-void setup_fail(Payload &p, FailCode fc)
+void setup_fail(Payload &p, ResultCode rc)
 {
     p.type = pt_fail;
-    p.failcode = fc;
+    p.failcode = rc;
 }
 
 void setup_pinmode(Payload &p, uint8_t pin, uint8_t mode)
@@ -75,27 +112,29 @@ void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state)
     p.analogpinval.state = state;
 }
 
-void setup_readmem(Payload &p, uint16_t address, uint8_t length)
+AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length)
 {
     p.type = pt_readmem;
     p.readmem.address = address;
     p.readmem.length = length;
+
+    return AutomatoResult(rc_ok);
 }
 
-bool setup_readmemreply(Payload &p, uint8_t length, void* mem)
+AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem)
 {
     p.type = pt_readmemreply;
     if (length <= MAX_READMEM)
     {
         p.readmemreply.length = length;
         memcpy((void*)&p.readmemreply.data, mem, length);
-        return true;
+        return AutomatoResult(rc_ok);
     }
     else
-        // invalid length.
-        return false;
+        return AutomatoResult(rc_invalid_mem_length);
 }
-bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
+
+AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
 {
     p.type = pt_writemem;
     if (length <= MAX_WRITEMEM)
@@ -103,11 +142,10 @@ bool setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem)
         p.writemem.address = address;
         p.writemem.length = length;
         memcpy((void*)&p.writemem.data, mem, length);
-        return true;
+        return AutomatoResult(rc_ok);
     }
     else
-        // invalid length.
-        return false;
+        return AutomatoResult(rc_invalid_mem_length);
 }
 
 void setup_readinfo(Payload &p)
@@ -202,19 +240,9 @@ void printPayload(Payload &p)
             Serial.println("pt_ack");
             break;
         case pt_fail:
-            Serial.print("pt_fail: ");
-            switch (p.failcode) {
-fc_invalid_message_type:
-                Serial.println("fc_invalid_message_type");
-                break;
-fc_invalid_pin_number:
-                Serial.println("fc_invalid_pin_number");
-                break;
-                default:
-                    Serial.print("unknown failcode: ");
-                    Serial.println(p.failcode);
-                    break;
-            }
+            Serial.print("pt_fail; code: ");
+            Serial.println(p.failcode);
+            Serial.println(resultString((ResultCode)p.failcode));
             break;
         case pt_pinmode:
             Serial.println("pt_pinmode");
