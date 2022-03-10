@@ -18,7 +18,7 @@ uint8_t from_id;
 // see note in Automato.h
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
 
-// convert a RH router code to AutomaoResult.
+// convert a RH router code to AutomatoResult.
 AutomatoResult arFromRc(uint8_t rc)
 {
     switch (rc) {
@@ -235,7 +235,7 @@ AutomatoResult Automato::sendRequestPayload(uint8_t network_id, Payload &p)
         // destination.
         if (receiveMessage(from_id, mb))
         {
-            return AutomatoResult(mb.payload);
+            return ArFromReply(mb.payload);
         }
         else
         {

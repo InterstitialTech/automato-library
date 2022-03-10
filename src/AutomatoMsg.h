@@ -2,28 +2,14 @@
 #define Automatomsg_hh_INCLUDED
 
 #include <Arduino.h>
-// #include <Wire.h>
 #include <RH_RF95.h>
+#include <AutomatoResult.h>
 
 extern float protoVersion;
 
-enum ResultCode {
-    rc_ok,
-    rc_no_message_received,
-    rc_invalid_message_type,
-    rc_invalid_pin_number,
-    rc_invalid_mem_address,
-    rc_invalid_mem_length,
-    rc_invalid_reply_message,
-    rc_operation_forbidden,
-    rc_reply_timeout,
-    rc_rh_router_error_invalid_length,
-    rc_rh_router_error_no_route,
-    rc_rh_router_error_timeout,
-    rc_rh_router_error_no_reply,
-    rc_rh_router_error_unable_to_deliver,
-    rc_invalid_rh_router_error,
-};
+// --------------------------------------------------------
+// message structs.
+// --------------------------------------------------------
 
 enum PayloadType {
     pt_ack,
@@ -112,27 +98,19 @@ struct Message {
 struct msgbuf {
     union {
         uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-        Message msg;            // as Message for router-less
+        Message msg;     // as Message for router-less
         Payload payload; // as Payload for RHMesh
     };
 } __attribute__((packed));
 
-class AutomatoResult {
-public:
-    AutomatoResult();
-    AutomatoResult(ResultCode rc);
-    AutomatoResult(Payload &p);
-// true for success/ok, false for error.
-    operator bool ();
-    const char* as_string() const;
-    ResultCode resultCode() const;
-
-private:
-    ResultCode rc;
-};
+// --------------------------------------------------------
+// message utility functions.
+// --------------------------------------------------------
 
 uint8_t payloadSize(Payload &p);
 void printPayload(Payload &p);
+bool isReply(PayloadType pt);
+AutomatoResult ArFromReply(Payload &p);
 
 void setup_ack(Payload &p);
 void setup_fail(Payload &p, ResultCode rc);
