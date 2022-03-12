@@ -30,6 +30,17 @@ bool allRcsHaveStrings()
   return true;
 }
 
+bool onlyOkIsTrue() 
+{
+  for (uint8_t rc = 0; rc < rc_count; ++rc)
+  {
+    auto ar = AutomatoResult((ResultCode)rc);
+    if (ar && ar.resultCode() != rc_ok)
+      return false;
+  }
+  return true;
+}
+
 
 
 int main(int argc, char *argv[])
@@ -46,6 +57,12 @@ int main(int argc, char *argv[])
   {
     ++failures;
     cout << "test failed: " << "allRcsHaveStrings()" << endl;
+  }
+  
+  if (!onlyOkIsTrue())
+  {
+    ++failures;
+    cout << "test failed: " << "onlyOkIsTrue()" << endl;
   }
   
   cout << failures << " tests failed." << endl;
