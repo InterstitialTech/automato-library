@@ -20,6 +20,8 @@ enum ResultCode {
     rc_count,  // total number of ResultCodes.
 };
 
+const char* resultString(ResultCode rc);
+
 class AutomatoResult {
 public:
     AutomatoResult();

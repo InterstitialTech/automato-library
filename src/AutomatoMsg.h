@@ -28,7 +28,8 @@ enum PayloadType {
     pt_readtemperature,
     pt_readtemperaturereply,
     pt_readanalog,
-    pt_readanalogreply
+    pt_readanalogreply,
+    pt_count // not a payload type; just the number of payload types.
 };
 
 struct RemoteInfo {
@@ -108,9 +109,9 @@ struct Msgbuf {
 // --------------------------------------------------------
 
 uint8_t payloadSize(Payload &p);
-void printPayload(Payload &p);
+bool printPayload(Payload &p);
 bool isReply(PayloadType pt);
-AutomatoResult ArFromReply(Payload &p);
+AutomatoResult arFromReply(Payload &p);
 
 void setup_ack(Payload &p);
 void setup_fail(Payload &p, ResultCode rc);
@@ -140,7 +141,5 @@ void setup_readinforeply(Payload &p,
     uint16_t datalen);
 
 bool succeeded(Payload &p);
-
-const char* resultString(ResultCode rc);
 
 #endif // Automatomsg_hh_INCLUDED

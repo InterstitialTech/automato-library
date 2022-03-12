@@ -50,7 +50,7 @@ bool isReply(PayloadType pt)
     }
 }
 
-AutomatoResult ArFromReply(Payload &p)
+AutomatoResult arFromReply(Payload &p)
 {
     if (p.type == pt_fail)
         return AutomatoResult((ResultCode)p.failcode);
@@ -227,7 +227,7 @@ uint8_t payloadSize(Payload &p) {
     }
 }
 
-void printPayload(Payload &p)
+bool printPayload(Payload &p)
 {
     Serial.println("message payload");
 
@@ -238,57 +238,57 @@ void printPayload(Payload &p)
     switch ((int)p.type) {
         case pt_ack:
             Serial.println("pt_ack");
-            break;
+            return true;
         case pt_fail:
             Serial.print("pt_fail; code: ");
             Serial.println(p.failcode);
             Serial.println(resultString((ResultCode)p.failcode));
-            break;
+            return true;
         case pt_pinmode:
             Serial.println("pt_pinmode");
             Serial.print("pin: ");
             Serial.println(p.pinmode.pin);
             Serial.print("mode: ");
             Serial.println(p.pinmode.mode);
-            break;
+            return true;
         case pt_readpin:
             Serial.println("pt_readpin");
             Serial.print("pin: ");
             Serial.println(p.pin);
-            break;
+            return true;
         case pt_readpinreply:
             Serial.println("pt_readpinreply");
             Serial.print("pin: ");
             Serial.println(p.pinval.pin);
             Serial.print("state: ");
             Serial.println(p.pinval.state);
-            break;
+            return true;
         case pt_writepin:
             Serial.println("pt_writepin");
             Serial.print("pin: ");
             Serial.println(p.pinval.pin);
             Serial.print("state: ");
             Serial.println(p.pinval.state);
-            break;
+            return true;
         case pt_readanalog:
             Serial.println("pt_readanalog");
             Serial.print("pin: ");
             Serial.println(p.pin);
-            break;
+            return true;
         case pt_readanalogreply:
             Serial.println("pt_readanalogreply");
             Serial.print("pin: ");
             Serial.println(p.pin);
             Serial.print("state: ");
             Serial.println(p.analogpinval.state);
-            break;
+            return true;
         case pt_readmem:
             Serial.println("pt_readmem");
             Serial.print("address");
             Serial.println(p.readmem.address);
             Serial.print("length");
             Serial.println(p.readmem.length);
-            break;
+            return true;
         case pt_readmemreply:
             Serial.println("pt_readmemreply");
             Serial.print("length: ");
@@ -298,7 +298,7 @@ void printPayload(Payload &p)
                 Serial.print(p.readmemreply.data[i], HEX);
             }
             Serial.println();
-            break;
+            return true;
         case pt_writemem:
             Serial.println("pt_writemem");
             Serial.print("address");
@@ -310,10 +310,10 @@ void printPayload(Payload &p)
                 Serial.print(p.writemem.data[i], HEX);
             }
             Serial.println();
-            break;
+            return true;
         case pt_readinfo:
             Serial.println("pt_readinfo");
-            break;
+            return true;
         case pt_readinforeply:
             Serial.println("pt_readinforeply");
             Serial.print("protoversion:");
@@ -322,26 +322,26 @@ void printPayload(Payload &p)
             Serial.println(p.remoteinfo.macAddress);
             Serial.print("datalen:");
             Serial.println(p.remoteinfo.datalen);
-            break;
+            return true;
         case pt_readhumidity:
             Serial.println("pt_readhumidity");
-            break;
+            return true;
         case pt_readhumidityreply:
             Serial.println("pt_readhumidityreply");
             Serial.print("humidity:");
             Serial.println(p.f);
-            break;
+            return true;
         case pt_readtemperature:
             Serial.println("pt_readtemperature");
-            break;
+            return true;
         case pt_readtemperaturereply:
             Serial.println("pt_readtemperaturereply");
             Serial.print("temperature:");
             Serial.println(p.f);
-            break;
+            return true;
         default:
             Serial.print("unknown message type: ");
             Serial.println((int)p.type);
-            break;
+            return false;
     }
 }
