@@ -17,6 +17,7 @@ enum ResultCode {
     rc_rh_router_error_no_reply,
     rc_rh_router_error_unable_to_deliver,
     rc_invalid_rh_router_error,
+    rc_count,  // total number of ResultCodes.
 };
 
 class AutomatoResult {
