@@ -158,12 +158,6 @@ AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uin
 
     if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequest(network_id, mb)))
     {
-        // TODO: use the length of the return message to compute length of data?
-        // as a belt-and-suspenders check.
-
-        // TODO support not copying the val to a destination, if desired.  Needless
-        // memcpy if you're not going to keep the value.
-
         if (mb.payload.type == pt_readmemreply) {
             memcpy(value, (void*)&mb.payload.readmemreply.data, length);
             return AutomatoResult(rc_ok);
@@ -235,14 +229,20 @@ AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
         // mesh already does an Ack behind the scenes, but only between this
         // node and the next.  So we have to do our own ack with the final
         // destination.
-        if (receiveMessage(from_id, mb))
+        while (receiveMessage(from_id, mb))
         {
-            return ArFromReply(mb.payload);
+            if (mb.payload.type == pt_fail)
+                return AutomatoResult((ResultCode)mb.payload.failcode);
+            else if (isReply((PayloadType)mb.payload.type))
+                return AutomatoResult(rc_ok);
+            else
+            {
+                // not a reply, a request.  process and listen for a reply.
+                handleRcMessage(from_id, mb);
+            }
         }
-        else
-        {
-            return AutomatoResult(rc_reply_timeout);
-        }
+
+        return AutomatoResult(rc_reply_timeout);
     }
     else
     {
@@ -257,8 +257,7 @@ AutomatoResult Automato::sendReply(uint8_t network_id, Payload &p)
 
 bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb)
 {
-    uint8_t len = sizeof(mb.buf); // TODO hardcode for speed.
-    // TODO switch to non-timeout?
+    uint8_t len = sizeof(mb.buf);
     mb.payload.f = 0;
     if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id))
     {
