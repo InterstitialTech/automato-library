@@ -229,14 +229,20 @@ AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
         // mesh already does an Ack behind the scenes, but only between this
         // node and the next.  So we have to do our own ack with the final
         // destination.
-        if (receiveMessage(from_id, mb))
+        while (receiveMessage(from_id, mb))
         {
-            return arFromReply(mb.payload);
+            if (mb.payload.type == pt_fail)
+                return AutomatoResult((ResultCode)mb.payload.failcode);
+            else if (isReply((PayloadType)mb.payload.type))
+                return AutomatoResult(rc_ok);
+            else
+            {
+                // not a reply, a request.  process and listen for a reply.
+                handleRcMessage(from_id, mb);
+            }
         }
-        else
-        {
-            return AutomatoResult(rc_reply_timeout);
-        }
+
+        return AutomatoResult(rc_reply_timeout);
     }
     else
     {

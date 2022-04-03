@@ -41,7 +41,13 @@ bool onlyOkIsTrue()
   return true;
 }
 
-
+// bool payloadSizeImplementedForAll()
+// {
+//   for (uint8_t pt = 0; pt < pt_count; ++pt)
+//   {
+//     if (payloadSize(
+//   }
+// }
 
 int main(int argc, char *argv[])
 {
