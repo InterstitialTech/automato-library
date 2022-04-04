@@ -191,7 +191,7 @@ uint8_t payloadSize(Payload &p) {
         case pt_ack:
             return sizeof(uint8_t);
         case pt_fail:
-            return sizeof(uint8_t);
+            return sizeof(uint8_t) * 2;
         case pt_pinmode:
             return sizeof(uint8_t) + sizeof(Pinmode);
         case pt_readpin:
@@ -284,9 +284,9 @@ void printPayload(Payload &p)
             break;
         case pt_readmem:
             Serial.println("pt_readmem");
-            Serial.print("address");
+            Serial.print("address: ");
             Serial.println(p.readmem.address);
-            Serial.print("length");
+            Serial.print("length: ");
             Serial.println(p.readmem.length);
             break;
         case pt_readmemreply:
@@ -301,9 +301,9 @@ void printPayload(Payload &p)
             break;
         case pt_writemem:
             Serial.println("pt_writemem");
-            Serial.print("address");
+            Serial.print("address: ");
             Serial.println(p.writemem.address);
-            Serial.print("length");
+            Serial.print("length: ");
             Serial.println(p.writemem.length);
             Serial.print("mem: ");
             for (int i = 0; i < p.readmemreply.length; ++i) {
@@ -316,11 +316,11 @@ void printPayload(Payload &p)
             break;
         case pt_readinforeply:
             Serial.println("pt_readinforeply");
-            Serial.print("protoversion:");
+            Serial.print("protoversion: ");
             Serial.println(p.remoteinfo.protoversion);
-            Serial.print("macAddress:");
+            Serial.print("macAddress: ");
             Serial.println(p.remoteinfo.macAddress);
-            Serial.print("datalen:");
+            Serial.print("datalen: ");
             Serial.println(p.remoteinfo.datalen);
             break;
         case pt_readhumidity:
@@ -328,7 +328,7 @@ void printPayload(Payload &p)
             break;
         case pt_readhumidityreply:
             Serial.println("pt_readhumidityreply");
-            Serial.print("humidity:");
+            Serial.print("humidity: ");
             Serial.println(p.f);
             break;
         case pt_readtemperature:
@@ -336,7 +336,7 @@ void printPayload(Payload &p)
             break;
         case pt_readtemperaturereply:
             Serial.println("pt_readtemperaturereply");
-            Serial.print("temperature:");
+            Serial.print("temperature: ");
             Serial.println(p.f);
             break;
         default:

@@ -28,7 +28,8 @@ enum PayloadType {
     pt_readtemperature,
     pt_readtemperaturereply,
     pt_readanalog,
-    pt_readanalogreply
+    pt_readanalogreply,
+    pt_count   // invalid type; tells us how many PTs we have.
 };
 
 struct RemoteInfo {
