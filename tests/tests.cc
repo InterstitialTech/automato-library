@@ -62,32 +62,39 @@ bool payloadSizeImplementedForAll()
   for (int i = 0; i < pt_count; ++i)
     tested_messages[i] = false;
 
-  // build a message of each type.
   Msgbuf mb;
 
-  int A7 = 32;
+  int A7 = 32;  // arbitrary pin number
 
+  // build a message of each type.
   setup_ack(mb.payload);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_fail(mb.payload, rc_no_message_received);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_pinmode(mb.payload, A7, 0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readpin(mb.payload, A7);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readpinreply(mb.payload, A7, 0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_writepin(mb.payload, A7, 0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readanalog(mb.payload, A7);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readanalogreply(mb.payload, A7, 0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
@@ -96,21 +103,27 @@ bool payloadSizeImplementedForAll()
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
   const char *test = "1234567890";
+
   setup_readmemreply(mb.payload,10, (void*)test);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_writemem(mb.payload, 0, 10, (void*)test);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readhumidity(mb.payload);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readhumidityreply(mb.payload, 1.0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readtemperature(mb.payload);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readtemperaturereply(mb.payload, 1.0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
@@ -118,6 +131,7 @@ bool payloadSizeImplementedForAll()
   setup_readinfo(mb.payload);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
+
   setup_readinforeply(mb.payload, 1.0, 0, 0);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
@@ -132,7 +146,35 @@ bool payloadSizeImplementedForAll()
   }
 
   return true;
+}
 
+bool setup_writememFailsAppropriately()
+{
+  Msgbuf mb;
+  // MAX_WRITEMEM fails
+  char test[MAX_WRITEMEM + 1];
+  if (!setup_writemem(mb.payload, 0, MAX_WRITEMEM, (void*)test))
+  {
+    cout << "MAX_WRITEMEM should succeed as length for setup_writemem, but it failed" << endl;
+    return false;
+  }
+
+  // greater than MAX_WRITEMEM fails. 
+  if (setup_writemem(mb.payload, 0, MAX_WRITEMEM + 1, (void*)test))
+  {
+    cout << "MAX_WRITEMEM + 1 should fail as length for setup_writemem, but it succeeded" << endl;
+    return false;
+  }
+
+  // less than MAX_WRITEMEM succeeds. 
+  if (!setup_writemem(mb.payload, 0, MAX_WRITEMEM - 1, (void*)test) || 
+    !setup_writemem(mb.payload, 0, 0, (void*)test))
+  {
+    cout << "length less than MAX_WRITEMEM failed for setup_writemem" << endl;
+    return false;
+  }
+
+  return true;
 }
 
 bool testreadmem_setups()
@@ -166,6 +208,12 @@ int main(int argc, char *argv[])
   {
     ++failures;
     cout << "test failed: " << "payloadSizeImplementedForAll()" << endl;
+  }
+
+  if (!setup_writememFailsAppropriately())
+  {
+    ++failures;
+    cout << "test failed: " << "setup_writememFailsAppropriately()" << endl;
   }
   
   cout << failures << " tests failed." << endl;
