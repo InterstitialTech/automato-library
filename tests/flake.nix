@@ -19,8 +19,6 @@
             nativeBuildInputs = with pkgs; [
               gcc
               gnumake
-              # stdenv
-              # pkgconfig
             ];
           };
         }

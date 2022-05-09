@@ -11,26 +11,26 @@ using namespace std;
 // }
 
 
-auto invalidmsg = "unknown error code"; 
+auto invalidmsg = "unknown error code";
 
-bool invalidRcGivesExpectedString() 
+bool invalidRcGivesExpectedString()
 {
    auto ar = AutomatoResult((ResultCode)(rc_count + 1));
    return (strcmp(ar.as_string(), invalidmsg) == 0);
 }
- 
-bool allRcsHaveStrings() 
+
+bool allRcsHaveStrings()
 {
   for (uint8_t rc = 0; rc < rc_count; ++rc)
   {
     auto ar = AutomatoResult((ResultCode)rc);
-    if (strcmp(ar.as_string(), invalidmsg) == 0) 
+    if (strcmp(ar.as_string(), invalidmsg) == 0)
       return false;
   }
   return true;
 }
 
-bool onlyOkIsTrue() 
+bool onlyOkIsTrue()
 {
   for (uint8_t rc = 0; rc < rc_count; ++rc)
   {
@@ -57,7 +57,7 @@ bool test_payload_size(Payload &p, bool *tested_messages)
 
 bool payloadSizeImplementedForAll()
 {
-  // track what message types have been tested. 
+  // track what message types have been tested.
   bool tested_messages[pt_count];
   for (int i = 0; i < pt_count; ++i)
     tested_messages[i] = false;
@@ -159,15 +159,15 @@ bool setup_writememFailsAppropriately()
     return false;
   }
 
-  // greater than MAX_WRITEMEM fails. 
+  // greater than MAX_WRITEMEM fails.
   if (setup_writemem(mb.payload, 0, MAX_WRITEMEM + 1, (void*)test))
   {
     cout << "MAX_WRITEMEM + 1 should fail as length for setup_writemem, but it succeeded" << endl;
     return false;
   }
 
-  // less than MAX_WRITEMEM succeeds. 
-  if (!setup_writemem(mb.payload, 0, MAX_WRITEMEM - 1, (void*)test) || 
+  // less than MAX_WRITEMEM succeeds.
+  if (!setup_writemem(mb.payload, 0, MAX_WRITEMEM - 1, (void*)test) ||
     !setup_writemem(mb.payload, 0, 0, (void*)test))
   {
     cout << "length less than MAX_WRITEMEM failed for setup_writemem" << endl;
@@ -179,7 +179,7 @@ bool setup_writememFailsAppropriately()
 
 bool test_writemem_at_data_boundaries()
 {
-  // set up an automato data area; write to the beginning and ending of the area with 
+  // set up an automato data area; write to the beginning and ending of the area with
   // writemem.  does it write over the boundary?  work up to the edge of the data area?
 
   return false; // unimplemented
@@ -200,7 +200,7 @@ bool received_mems_fail_appropriately()
 int main(int argc, char *argv[])
 {
   int failures(0);
-  
+
   if (!invalidRcGivesExpectedString())
   {
     ++failures;
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
     ++failures;
     cout << "test failed: " << "allRcsHaveStrings()" << endl;
   }
-  
+
   if (!onlyOkIsTrue())
   {
     ++failures;
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     ++failures;
     cout << "test failed: " << "setup_writememFailsAppropriately()" << endl;
   }
-  
+
   cout << failures << " tests failed." << endl;
 
   return 0;
