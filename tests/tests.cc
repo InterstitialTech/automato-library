@@ -177,8 +177,23 @@ bool setup_writememFailsAppropriately()
   return true;
 }
 
+bool test_writemem_at_data_boundaries()
+{
+  // set up an automato data area; write to the beginning and ending of the area with 
+  // writemem.  does it write over the boundary?  work up to the edge of the data area?
+
+  return false; // unimplemented
+}
+
 bool testreadmem_setups()
 {
+  return false;  // unimplemented
+}
+
+bool received_mems_fail_appropriately()
+{
+  // when invalid mem messages are recieved, they are detected.
+
   return false;  // unimplemented
 }
 

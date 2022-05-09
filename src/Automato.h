@@ -59,7 +59,6 @@ public:
     AutomatoResult remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value);
     AutomatoResult remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value);
 
-
     AutomatoResult remoteTemperature(uint8_t network_id, float &temperature);
     AutomatoResult remoteHumidity(uint8_t network_id, float &humidity);
     AutomatoResult remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info);
