@@ -9,6 +9,7 @@
 
 #include <Wire.h>
 #include <AutomatoMsg.h>
+#include <SerialReader.h>
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
@@ -31,7 +32,7 @@ private:
 
     bool allowRemotePinOutputs;
 
-protected:
+    SerialReader serialReader;
 
 public:
     Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs);
@@ -66,12 +67,22 @@ public:
     // receive and handle remote control messages.
     AutomatoResult doRemoteControl();
 
+    // receive and handle serial messages.
+    AutomatoResult doSerial();
+
     // lower level message sending and receiving.
     AutomatoResult sendRequest(uint8_t network_id, Msgbuf &mb);
     AutomatoResult sendReply(uint8_t network_id, Payload &p);
     bool receiveMessage(uint8_t &from_id, Msgbuf &mb);
-    AutomatoResult handleRcMessage(uint8_t &from_id, Msgbuf &mb);
+    bool receiveSerialMessage();
+    AutomatoResult handleLoraMessage(uint8_t from_id, Msgbuf &mb);
+    AutomatoResult handleSerialMessage(uint8_t to_id, Msgbuf &mb);
+    void handleMessage(Msgbuf &mb);
+
 };
+
+void writeSerialMessage(uint8_t from_id, Msgbuf &mb);
+
 
 // read/write from the memory map on a remote Automato.
 #define remote_memwrite(dest, struct, field, val) remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
