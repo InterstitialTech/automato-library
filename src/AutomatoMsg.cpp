@@ -191,7 +191,7 @@ uint8_t payloadSize(Payload &p) {
         case pt_ack:
             return sizeof(uint8_t);
         case pt_fail:
-            return sizeof(uint8_t);
+            return sizeof(uint8_t) + sizeof(uint8_t);
         case pt_pinmode:
             return sizeof(uint8_t) + sizeof(Pinmode);
         case pt_readpin:
@@ -301,12 +301,12 @@ bool printPayload(Payload &p)
             return true;
         case pt_writemem:
             Serial.println("pt_writemem");
-            Serial.print("address");
+            Serial.print("address ");
             Serial.println(p.writemem.address);
-            Serial.print("length");
+            Serial.print("length ");
             Serial.println(p.writemem.length);
             Serial.print("mem: ");
-            for (int i = 0; i < p.readmemreply.length; ++i) {
+            for (int i = 0; i < p.writemem.length; ++i) {
                 Serial.print(p.writemem.data[i], HEX);
             }
             Serial.println();
