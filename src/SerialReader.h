@@ -4,10 +4,10 @@
 #include "AutomatoMsg.h"
 
 enum SerialState {
-  Ready,
-  ToId,
-  Length,
-  Msg
+    Ready,
+    ToId,
+    Length,
+    Msg
 };
 
 class SerialReader {

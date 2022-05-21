@@ -283,22 +283,22 @@ AutomatoResult Automato::handleSerialMessage(uint8_t to_id, Msgbuf &mb)
 {
     if (to_id == rhmesh.thisAddress())
     {
-      handleMessage(mb);
+        handleMessage(mb);
     }
     else
     {
-      // forward to another automato!
-      return sendRequest(to_id, mb);
+        // forward to another automato!
+        return sendRequest(to_id, mb);
     }
 }
 
 void writeSerialMessage(uint8_t from_id, Msgbuf &mb)
 {
-  Serial.write('m');
-  Serial.write(from_id);
-  uint8_t ps = payloadSize(mb.payload);
-  Serial.write(ps);
-  Serial.write(mb.buf, ps);
+    Serial.write('m');
+    Serial.write(from_id);
+    uint8_t ps = payloadSize(mb.payload);
+    Serial.write(ps);
+    Serial.write(mb.buf, ps);
 }
 
 
@@ -440,12 +440,14 @@ AutomatoResult Automato::doRemoteControl()
 AutomatoResult Automato::doSerial()
 {
     if (receiveSerialMessage()) {
-      do
-      {
-        handleSerialMessage(serialReader.to_id, serialReader.mb);
-        // write the response back through serial
-        writeSerialMessage(serialReader.to_id, serialReader.mb);
-      } while (receiveSerialMessage());
+        do
+        {
+            // printPayload(serialReader.mb.payload);
+            handleSerialMessage(serialReader.to_id, serialReader.mb);
+            // write the response back through serial
+            writeSerialMessage(serialReader.to_id, serialReader.mb);
+        } while (receiveSerialMessage());
+        return AutomatoResult(rc_ok);
     }
     else
     {
