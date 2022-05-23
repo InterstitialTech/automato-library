@@ -39,9 +39,36 @@ AutomatoResult arFromRc(uint8_t rc)
     }
 }
 
+Automato::Automato(uint8_t networkid, bool allowRemotePinOutputs)
+    : rhmesh(rf95, networkid), 
+    databuf(nullptr),
+    datalen(0),
+    memoryMap(nullptr),
+    mapEntryCount(0),
+    allowRemotePinOutputs(allowRemotePinOutputs)
+{
+}
+
 Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs)
     : rhmesh(rf95, networkid), databuf(databuf),
     datalen(datalen),
+    memoryMap(nullptr),
+    mapEntryCount(0),
+    allowRemotePinOutputs(allowRemotePinOutputs)
+{
+}
+
+Automato::Automato(uint8_t networkid,
+                   void *databuf,
+                   uint16_t datalen,
+                   void *mapentries,
+                   uint16_t mapentrycount,
+                   bool allowRemotePinOutputs)
+    : rhmesh(rf95, networkid), 
+    databuf(databuf),
+    datalen(datalen),
+    memoryMap(mapentries),
+    mapEntryCount(mapentrycount),
     allowRemotePinOutputs(allowRemotePinOutputs)
 {
 }

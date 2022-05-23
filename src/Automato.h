@@ -22,6 +22,27 @@
 // so for now, declare it globally
 extern Adafruit_ILI9341 screen;
 
+enum FieldFormat {
+  ff_char,
+  ff_float,
+  ff_uint8,
+  ff_uint16,
+  ff_uint32,
+  ff_int8,
+  ff_int16,
+  ff_int32,
+  ff_other
+};
+
+struct MapField {
+  const char * name;
+  uint16_t offset;
+  uint16_t length;
+  FieldFormat format;
+};
+
+#define map_field(struct, field, format) MapField { "field", offsetof(struct, field), sizeof(struct ::field), format }
+
 class Automato {
 
 private:
@@ -35,11 +56,27 @@ private:
     SerialReader serialReader;
 
 public:
-    Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs);
+    // Simplest Automato constructor.
+    Automato(uint8_t networkid, bool allowRemotePinOutputs);
+    // Add a data area that can be read or written remotely.
+    Automato(uint8_t networkid,
+             void *databuf,
+             uint16_t datalen,
+             bool allowRemotePinOutputs);
+    // Data area as above, but also a remotely-accessible memory map.
+    Automato(uint8_t networkid,
+             void *databuf,
+             uint16_t datalen,
+             void *mapentries,
+             uint16_t mapentrycount,
+             bool allowRemotePinOutputs);
     void init(float frequency = 915.0, uint8_t power = 13);
 
     void *databuf;
     uint16_t datalen;
+
+    void *memoryMap;
+    uint64_t mapEntryCount;
 
     void clearScreen(void);
 
