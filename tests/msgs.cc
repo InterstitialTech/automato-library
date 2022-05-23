@@ -7,12 +7,12 @@
 using namespace std;
 
 
-void testMsg(const char *fname) 
+void testMsg(const char *fname)
 {
   std::cout << std::endl << fname << std::endl;
   Msgbuf mb;
 
-  FILE * filp = fopen(fname, "rb"); 
+  FILE * filp = fopen(fname, "rb");
   int bytes_read = fread(mb.buf, sizeof(char), RH_RF95_MAX_MESSAGE_LEN, filp);
 
   std::cout << "read bytes: " << bytes_read << std::endl;
@@ -21,7 +21,7 @@ void testMsg(const char *fname)
   {
     std::cout << (int)mb.buf[i] << " " << endl;
   }
-  
+
   printPayload(mb.payload);
 }
 

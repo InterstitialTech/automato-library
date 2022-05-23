@@ -459,5 +459,3 @@ bool Automato::receiveSerialMessage()
 {
     return serialReader.read();
 }
-
-
