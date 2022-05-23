@@ -25,6 +25,7 @@ void testMsg(const char *fname)
   printPayload(mb.payload);
 }
 
+// these test files are generated from the rust code.
 int main(int argc, char *argv[])
 {
   testMsg("ack.bin");
@@ -46,5 +47,3 @@ int main(int argc, char *argv[])
   testMsg("readtemperaturereply.bin");
   return 0;
 }
-
-

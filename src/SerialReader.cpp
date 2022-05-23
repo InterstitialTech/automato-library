@@ -6,9 +6,6 @@ bool SerialReader::read()
 {
     while (Serial.available() > 0) {
         uint8_t i = Serial.read();
-        // Serial.print("serialreader: '");
-        // Serial.print(i);
-        // Serial.println("'");
         switch (serialState) {
             case Ready:
                 if (i == 'm') {
@@ -32,14 +29,11 @@ bool SerialReader::read()
             case Msg:
                 if (received < length)
                 {
-                    // Serial.print("recieved: ");
-                    // Serial.println(i);
                     mb.buf[received] = i;
                     received++;
                 }
                 else
                 {
-                    // Serial.print("ready: ");
                     serialState = Ready;
                     return true;
                 }
