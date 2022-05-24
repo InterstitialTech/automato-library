@@ -121,27 +121,27 @@ struct Msgbuf {
 } __attribute__((packed));
 
 // -------------------------------------------------------
-// Memory Map structs; not messages per se, but used to 
+// Memory Map structs; not messages per se, but used to
 // build the FieldInfo message.
 // -------------------------------------------------------
 
 enum FieldFormat {
-  ff_char,
-  ff_float,
-  ff_uint8,
-  ff_uint16,
-  ff_uint32,
-  ff_int8,
-  ff_int16,
-  ff_int32,
-  ff_other
+    ff_char,
+    ff_float,
+    ff_uint8,
+    ff_uint16,
+    ff_uint32,
+    ff_int8,
+    ff_int16,
+    ff_int32,
+    ff_other
 };
 
 struct MapField {
-  const char * name;
-  uint16_t offset;
-  uint16_t length;
-  FieldFormat format;
+    const char * name;
+    uint16_t offset;
+    uint16_t length;
+    FieldFormat format;
 };
 
 // --------------------------------------------------------
@@ -182,7 +182,7 @@ void setup_readinforeply(Payload &p,
     uint16_t fieldcount);
 
 void setup_readfieldinfo(Payload &p, uint16_t fieldindex);
-void setup_fieldinforeply(Payload &p, uint16_t fieldindex, MapField &fieldinfo); 
+void setup_fieldinforeply(Payload &p, uint16_t fieldindex, MapField &fieldinfo);
 
 bool succeeded(Payload &p);
 

@@ -39,16 +39,16 @@ public:
     Automato(uint8_t networkid, bool allowRemotePinOutputs);
     // Add a data area that can be read or written remotely.
     Automato(uint8_t networkid,
-             void *databuf,
-             uint16_t datalen,
-             bool allowRemotePinOutputs);
+        void *databuf,
+        uint16_t datalen,
+        bool allowRemotePinOutputs);
     // Data area as above, but also a remotely-accessible memory map.
     Automato(uint8_t networkid,
-             void *databuf,
-             uint16_t datalen,
-             void *mapentries,
-             uint16_t mapentrycount,
-             bool allowRemotePinOutputs);
+        void *databuf,
+        uint16_t datalen,
+        void *mapentries,
+        uint16_t mapentrycount,
+        bool allowRemotePinOutputs);
     void init(float frequency = 915.0, uint8_t power = 13);
 
     void *databuf;

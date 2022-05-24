@@ -40,7 +40,7 @@ AutomatoResult arFromRc(uint8_t rc)
 }
 
 Automato::Automato(uint8_t networkid, bool allowRemotePinOutputs)
-    : rhmesh(rf95, networkid), 
+    : rhmesh(rf95, networkid),
     databuf(nullptr),
     datalen(0),
     memoryMap(nullptr),
@@ -59,12 +59,12 @@ Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allo
 }
 
 Automato::Automato(uint8_t networkid,
-                   void *databuf,
-                   uint16_t datalen,
-                   void *mapentries,
-                   uint16_t mapentrycount,
-                   bool allowRemotePinOutputs)
-    : rhmesh(rf95, networkid), 
+    void *databuf,
+    uint16_t datalen,
+    void *mapentries,
+    uint16_t mapentrycount,
+    bool allowRemotePinOutputs)
+    : rhmesh(rf95, networkid),
     databuf(databuf),
     datalen(datalen),
     memoryMap(mapentries),
