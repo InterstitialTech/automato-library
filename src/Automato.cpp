@@ -44,7 +44,7 @@ Automato::Automato(uint8_t networkid, bool allowRemotePinOutputs)
     databuf(nullptr),
     datalen(0),
     memoryMap(nullptr),
-    mapEntryCount(0),
+    fieldCount(0),
     allowRemotePinOutputs(allowRemotePinOutputs)
 {
 }
@@ -53,7 +53,7 @@ Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allo
     : rhmesh(rf95, networkid), databuf(databuf),
     datalen(datalen),
     memoryMap(nullptr),
-    mapEntryCount(0),
+    fieldCount(0),
     allowRemotePinOutputs(allowRemotePinOutputs)
 {
 }
@@ -68,7 +68,7 @@ Automato::Automato(uint8_t networkid,
     databuf(databuf),
     datalen(datalen),
     memoryMap(mapentries),
-    mapEntryCount(mapentrycount),
+    fieldCount(mapentrycount),
     allowRemotePinOutputs(allowRemotePinOutputs)
 {
 }
@@ -428,7 +428,7 @@ void Automato::handleMessage(Msgbuf &mb)
                 return;
             };
         case pt_readinfo:
-            setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen);
+            setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen, fieldCount);
             return;
         case pt_readhumidity:
             readTempHumidity();

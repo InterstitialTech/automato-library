@@ -45,5 +45,7 @@ int main(int argc, char *argv[])
   testMsg("readhumidityreply.bin");
   testMsg("readtemperature.bin");
   testMsg("readtemperaturereply.bin");
+  testMsg("readfield.bin");
+  testMsg("readfieldreply.bin");
   return 0;
 }
