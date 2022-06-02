@@ -45,7 +45,7 @@ bool onlyOkIsTrue()
 bool test_payload_size(Payload &p, bool *tested_messages)
 {
   if (payloadSize(p) == 0) {
-    cout << "payloadSize unimplemented for type: " << p.type << endl;
+    cout << "payloadSize unimplemented for type: " << (int)p.type << endl;
     return false;
   }
   else
@@ -132,20 +132,30 @@ bool payloadSizeImplementedForAll()
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
 
-  setup_readinforeply(mb.payload, 1.0, 0, 0);
+  setup_readinforeply(mb.payload, 1.0, 0, 0, 10);
   if (!test_payload_size(mb.payload, tested_messages))
     return false;
 
+  setup_readfield(mb.payload, 1);
+  if (!test_payload_size(mb.payload, tested_messages))
+    return false;
+
+  auto mf = MapField { "wat", 1, 20, ff_uint32 };
+  setup_readfieldreply(mb.payload, 7, mf);
+  if (!test_payload_size(mb.payload, tested_messages))
+    return false;
+
+  bool result = true;
   for (int i = 0; i < pt_count; ++i)
   {
     if (tested_messages[i] == false)
     {
       cout << "payloadSize untested for payload type: " << i << endl;
-      return false;
+      result = false;
     }
   }
 
-  return true;
+  return result;
 }
 
 bool setup_writememFailsAppropriately()

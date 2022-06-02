@@ -311,6 +311,7 @@ AutomatoResult Automato::handleSerialMessage(uint8_t to_id, Msgbuf &mb)
     if (to_id == rhmesh.thisAddress())
     {
         handleMessage(mb);
+        return AutomatoResult(rc_ok);
     }
     else
     {
@@ -321,10 +322,10 @@ AutomatoResult Automato::handleSerialMessage(uint8_t to_id, Msgbuf &mb)
 
 void writeSerialMessage(uint8_t from_id, Msgbuf &mb)
 {
-    Serial.write('m');
-    Serial.write(from_id);
     uint8_t ps = payloadSize(mb.payload);
-    Serial.write(ps);
+    Serial.write('m');       // 'm' for message
+    Serial.write(from_id);   // from which automato.
+    Serial.write(ps);        // payload length
     Serial.write(mb.buf, ps);
 }
 
@@ -438,6 +439,14 @@ void Automato::handleMessage(Msgbuf &mb)
             readTempHumidity();
             setup_readtemperaturereply(mb.payload, getTemperature());
             return;
+        case pt_readfield:
+            if (mb.payload.readfield.fieldindex < this->fieldCount) {
+                MapField *mf = (MapField*)(memoryMap + mb.payload.readfield.fieldindex * sizeof(MapField));
+                setup_readfieldreply(mb.payload, mb.payload.readfield.fieldindex, *mf);
+            } else {
+                setup_fail(mb.payload, rc_invalid_mapfield_index);
+            }
+            return;
         // error!  These should only be received in response to a request.
         case pt_readhumidityreply:
         case pt_readtemperaturereply:
@@ -469,7 +478,6 @@ AutomatoResult Automato::doSerial()
     if (receiveSerialMessage()) {
         do
         {
-            // printPayload(serialReader.mb.payload);
             handleSerialMessage(serialReader.to_id, serialReader.mb);
             // write the response back through serial
             writeSerialMessage(serialReader.to_id, serialReader.mb);

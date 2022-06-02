@@ -12,26 +12,26 @@ extern float protoVersion;
 // --------------------------------------------------------
 
 enum PayloadType {
-    pt_ack,
-    pt_fail,
-    pt_pinmode,
-    pt_readpin,
-    pt_readpinreply,
-    pt_writepin,
-    pt_readmem,
-    pt_readmemreply,
-    pt_writemem,
-    pt_readinfo,
-    pt_readinforeply,
-    pt_readhumidity,
-    pt_readhumidityreply,
-    pt_readtemperature,
-    pt_readtemperaturereply,
-    pt_readanalog,
-    pt_readanalogreply,
-    pt_readfield,
-    pt_readfieldreply,
-    pt_count // not a payload type; just the number of payload types.
+    pt_ack = 0,
+    pt_fail = 1,
+    pt_pinmode = 2,
+    pt_readpin = 3,
+    pt_readpinreply = 4,
+    pt_writepin = 5,
+    pt_readmem = 6,
+    pt_readmemreply = 7,
+    pt_writemem = 8,
+    pt_readinfo = 9,
+    pt_readinforeply = 10,
+    pt_readhumidity = 11,
+    pt_readhumidityreply = 12,
+    pt_readtemperature = 13,
+    pt_readtemperaturereply = 14,
+    pt_readanalog = 15,
+    pt_readanalogreply = 16,
+    pt_readfield = 17,
+    pt_readfieldreply = 18,
+    pt_count = 19 // not a payload type; just the number of payload types.
 };
 
 struct RemoteInfo {
@@ -181,8 +181,8 @@ void setup_readinforeply(Payload &p,
     uint16_t datalen,
     uint16_t fieldcount);
 
-void setup_readfieldinfo(Payload &p, uint16_t fieldindex);
-void setup_fieldinforeply(Payload &p, uint16_t fieldindex, MapField &fieldinfo);
+void setup_readfield(Payload &p, uint16_t fieldindex);
+void setup_readfieldreply(Payload &p, uint16_t fieldindex, MapField &fieldinfo);
 
 bool succeeded(Payload &p);
 

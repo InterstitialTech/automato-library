@@ -106,7 +106,7 @@ void writeSerialMessage(uint8_t from_id, Msgbuf &mb);
 
 
 // define memory map fields 'documentation' for remotes to read.
-#define map_field(struct, field, format) MapField { "field", offsetof(struct, field), sizeof(struct ::field), format }
+#define map_field(struct, field, format) MapField { #field, offsetof(struct, field), sizeof(struct ::field), format }
 
 
 #endif /* AUTOMATO_SENSOR */

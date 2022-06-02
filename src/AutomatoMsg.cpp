@@ -45,6 +45,10 @@ bool isReply(PayloadType pt)
             return false;
         case pt_readanalogreply:
             return true;
+        case pt_readfield:
+            return false;
+        case pt_readfieldreply:
+            return true;
         default:
             return false;
     }
@@ -239,6 +243,10 @@ uint8_t payloadSize(Payload &p) {
             return sizeof(uint8_t);
         case pt_readtemperaturereply:
             return sizeof(uint8_t)+ sizeof(float);
+        case pt_readfield:
+            return sizeof(uint8_t) + sizeof(uint16_t);
+        case pt_readfieldreply:
+            return sizeof(uint8_t) + sizeof(uint16_t) * 3 + sizeof(uint8_t) + 25;
         default:
             return 0;
     }
