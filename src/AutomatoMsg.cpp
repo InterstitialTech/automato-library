@@ -366,6 +366,24 @@ bool printPayload(Payload &p)
             Serial.print("temperature:");
             Serial.println(p.f);
             return true;
+        case pt_readfield:
+            Serial.println("pt_readfield");
+            Serial.print("fieldindex: ");
+            Serial.println(p.readfield.fieldindex);
+            return true;
+        case pt_readfieldreply:
+            Serial.println("pt_readfieldreply");
+            Serial.print("fieldindex: ");
+            Serial.println(p.readfieldreply.fieldindex);
+            Serial.print("offset: ");
+            Serial.println(p.readfieldreply.offset);
+            Serial.print("length: ");
+            Serial.println(p.readfieldreply.length);
+            Serial.print("format: ");
+            Serial.println(p.readfieldreply.format);
+            Serial.print("name: ");
+            Serial.println(p.readfieldreply.name);
+            return true;
         default:
             Serial.print("unknown message type: ");
             Serial.println((int)p.type);

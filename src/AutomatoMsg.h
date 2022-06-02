@@ -11,7 +11,7 @@ extern float protoVersion;
 // message structs.
 // --------------------------------------------------------
 
-enum PayloadType {
+enum PayloadType : uint8_t {
     pt_ack = 0,
     pt_fail = 1,
     pt_pinmode = 2,
@@ -82,13 +82,13 @@ struct ReadFieldInfo {
 struct FieldInfo {
     uint16_t fieldindex;
     uint16_t offset;
-    uint16_t length;
+    uint8_t length;
     uint8_t format;
     char name[25];
 } __attribute__((packed));
 
 struct Payload {
-    uint8_t type; // PayloadType
+    PayloadType type;
     union {
         Pinval pinval;
         Pinmode pinmode;
@@ -125,7 +125,7 @@ struct Msgbuf {
 // build the FieldInfo message.
 // -------------------------------------------------------
 
-enum FieldFormat {
+enum FieldFormat : uint8_t {
     ff_char,
     ff_float,
     ff_uint8,

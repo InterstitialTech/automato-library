@@ -29,6 +29,7 @@ void readMsg(const char *fname)
 void writeMsg(Msgbuf &mb, const char * fname)
 {
   size_t sz = payloadSize(mb.payload);
+  cout << fname << " sz: " << sz << endl;
   FILE * filp = fopen(fname, "wb");
   int bytes_read = fwrite(mb.buf, sizeof(char), sz, filp);
 }
@@ -104,27 +105,26 @@ void writeMsgs()
 
 void readMsgs()
 {
-  readMsg("ack.bin");
-  readMsg("fail.bin");
-  readMsg("pinmode.bin");
-  readMsg("readpin.bin");
-  readMsg("readpinreply.bin");
-  readMsg("writepin.bin");
-  readMsg("readanalog.bin");
-  readMsg("readanalogreply.bin");
-  readMsg("readmem.bin");
-  readMsg("readmemreply.bin");
-  readMsg("writemem.bin");
-  readMsg("readinfo.bin");
-  readMsg("readinforeply.bin");
-  readMsg("readhumidity.bin");
-  readMsg("readhumidityreply.bin");
-  readMsg("readtemperature.bin");
-  readMsg("readtemperaturereply.bin");
-  readMsg("readfield.bin");
-  readMsg("readfieldreply.bin");
+  readMsg("rustmsgs-out/ack.bin");
+  readMsg("rustmsgs-out/fail.bin");
+  readMsg("rustmsgs-out/pinmode.bin");
+  readMsg("rustmsgs-out/readpin.bin");
+  readMsg("rustmsgs-out/readpinreply.bin");
+  readMsg("rustmsgs-out/writepin.bin");
+  readMsg("rustmsgs-out/readanalog.bin");
+  readMsg("rustmsgs-out/readanalogreply.bin");
+  readMsg("rustmsgs-out/readmem.bin");
+  readMsg("rustmsgs-out/readmemreply.bin");
+  readMsg("rustmsgs-out/writemem.bin");
+  readMsg("rustmsgs-out/readinfo.bin");
+  readMsg("rustmsgs-out/readinforeply.bin");
+  readMsg("rustmsgs-out/readhumidity.bin");
+  readMsg("rustmsgs-out/readhumidityreply.bin");
+  readMsg("rustmsgs-out/readtemperature.bin");
+  readMsg("rustmsgs-out/readtemperaturereply.bin");
+  readMsg("rustmsgs-out/readfield.bin");
+  readMsg("rustmsgs-out/readfieldreply.bin");
 }
-
 
 // these test files are generated from the rust code.
 int main(int argc, char *argv[])
