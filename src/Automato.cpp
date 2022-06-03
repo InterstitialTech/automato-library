@@ -399,7 +399,7 @@ void Automato::handleMessage(Msgbuf &mb)
                 setup_fail(mb.payload, rc_invalid_mem_address);
                 return;
             }
-            else if (mb.payload.readmem.address + mb.payload.readmem.length >= this->datalen) {
+            else if (mb.payload.readmem.address + mb.payload.readmem.length > this->datalen) {
                 // failed, invalid length.
                 setup_fail(mb.payload, rc_invalid_mem_length);
                 return;
