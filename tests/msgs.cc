@@ -3,16 +3,20 @@
 #include <Arduino.h>
 #include <AutomatoMsg.h>
 #include <cstdio>
+#include <string>
 
 using namespace std;
 
 
-void readMsg(const char *fname)
+void readMsg(const char *dir, Msgbuf &mb, const char *fname)
 {
     std::cout << std::endl << fname << std::endl;
-    Msgbuf mb;
 
-    FILE * filp = fopen(fname, "rb");
+    string s(dir);
+    s += "//";
+    s += fname;
+
+    FILE * filp = fopen(s.c_str(), "rb");
     int bytes_read = fread(mb.buf, sizeof(char), RH_RF95_MAX_MESSAGE_LEN, filp);
 
     std::cout << "read bytes: " << bytes_read << std::endl;
@@ -26,103 +30,215 @@ void readMsg(const char *fname)
 }
 
 
-void writeMsg(Msgbuf &mb, const char * fname)
+void writeMsg(const char *dir, Msgbuf &mb, const char * fname)
 {
+    string s(dir);
+    s += "//";
+    s += fname;
+
     size_t sz = payloadSize(mb.payload);
     cout << fname << " sz: " << sz << endl;
-    FILE * filp = fopen(fname, "wb");
+    FILE * filp = fopen(s.c_str(), "wb");
     int bytes_read = fwrite(mb.buf, sizeof(char), sz, filp);
 }
 
-void writeMsgs()
+void writeMsgs(const char *dir)
 {
     Msgbuf mb;
 
     setup_ack(mb.payload);
-    writeMsg(mb, "ack.bin");
+    writeMsg(dir, mb, "ack.bin");
 
     setup_fail(mb.payload, rc_invalid_rh_router_error);
-    writeMsg(mb, "fail.bin");
+    writeMsg(dir, mb, "fail.bin");
 
     setup_pinmode(mb.payload, 26, 2);
-    writeMsg(mb, "pinmode.bin");
+    writeMsg(dir, mb, "pinmode.bin");
 
     setup_readpin(mb.payload, 22);
-    writeMsg(mb, "readpin.bin");
+    writeMsg(dir, mb, "readpin.bin");
 
     setup_readpinreply(mb.payload, 26, 1);
-    writeMsg(mb, "readpinreply.bin");
+    writeMsg(dir, mb, "readpinreply.bin");
 
     setup_writepin(mb.payload, 15, 1);
-    writeMsg(mb, "writepin.bin");
+    writeMsg(dir, mb, "writepin.bin");
 
     setup_readanalog(mb.payload, 27);
-    writeMsg(mb, "readanalog.bin");
+    writeMsg(dir, mb, "readanalog.bin");
 
     setup_readanalogreply(mb.payload, 6, 500);
-    writeMsg(mb, "readanalogreply.bin");
+    writeMsg(dir, mb, "readanalogreply.bin");
 
     setup_readmem(mb.payload, 1500, 75);
-    writeMsg(mb, "readmem.bin");
+    writeMsg(dir, mb, "readmem.bin");
 
     const uint8_t testrm[] = {1, 2, 3, 4, 5};
     setup_readmemreply(mb.payload, 5, (void*)testrm);
-    writeMsg(mb, "readmemreply.bin");
+    writeMsg(dir, mb, "readmemreply.bin");
 
     const uint8_t testwm[] = {5, 4, 3, 2, 1};
     setup_writemem(mb.payload, 5678, 5, (void*)testwm);
-    writeMsg(mb, "writemem.bin");
+    writeMsg(dir, mb, "writemem.bin");
 
     setup_readinfo(mb.payload);
-    writeMsg(mb, "readinfo.bin");
+    writeMsg(dir, mb, "readinfo.bin");
 
     setup_readinforeply(mb.payload, 1.1, 5678, 5000, 5);
-    writeMsg(mb, "readinforeply.bin");
+    writeMsg(dir, mb, "readinforeply.bin");
 
     setup_readhumidity(mb.payload);
-    writeMsg(mb, "readhumidity.bin");
+    writeMsg(dir, mb, "readhumidity.bin");
 
     setup_readhumidityreply(mb.payload, 45.7);
-    writeMsg(mb, "readhumidityreply.bin");
+    writeMsg(dir, mb, "readhumidityreply.bin");
 
     setup_readtemperature(mb.payload);
-    writeMsg(mb, "readtemperature.bin");
+    writeMsg(dir, mb, "readtemperature.bin");
 
     setup_readtemperaturereply(mb.payload, 98.6);
-    writeMsg(mb, "readtemperaturereply.bin");
+    writeMsg(dir, mb, "readtemperaturereply.bin");
 
     setup_readfield(mb.payload, 1);
-    writeMsg(mb, "readfield.bin");
+    writeMsg(dir, mb, "readfield.bin");
 
-    auto mf = MapField { "wat", 1, 20, ff_uint32 };
+    auto mf = MapField { "wat", 77, 20, ff_uint32 };
     setup_readfieldreply(mb.payload, 7, mf);
-    writeMsg(mb, "readfieldreply.bin");
+    writeMsg(dir, mb, "readfieldreply.bin");
 }
 
-void readMsgs()
+bool readMsgs(const char *dir)
 {
-    readMsg("rustmsgs-out/ack.bin");
+    Msgbuf mb;
 
+    readMsg( dir,mb, "ack.bin");
+    if (mb.payload.type != pt_ack) {
+      cout << "ack msg failed" << endl;
+      return false;
+    }
 
+    readMsg( dir,mb, "fail.bin");
+    if (mb.payload.type != pt_fail || mb.payload.failcode != rc_invalid_rh_router_error) {
+      cout << "fail msg failed" << endl;
+      return false;
+    }
 
-    readMsg("rustmsgs-out/fail.bin");
-    readMsg("rustmsgs-out/pinmode.bin");
-    readMsg("rustmsgs-out/readpin.bin");
-    readMsg("rustmsgs-out/readpinreply.bin");
-    readMsg("rustmsgs-out/writepin.bin");
-    readMsg("rustmsgs-out/readanalog.bin");
-    readMsg("rustmsgs-out/readanalogreply.bin");
-    readMsg("rustmsgs-out/readmem.bin");
-    readMsg("rustmsgs-out/readmemreply.bin");
-    readMsg("rustmsgs-out/writemem.bin");
-    readMsg("rustmsgs-out/readinfo.bin");
-    readMsg("rustmsgs-out/readinforeply.bin");
-    readMsg("rustmsgs-out/readhumidity.bin");
-    readMsg("rustmsgs-out/readhumidityreply.bin");
-    readMsg("rustmsgs-out/readtemperature.bin");
-    readMsg("rustmsgs-out/readtemperaturereply.bin");
-    readMsg("rustmsgs-out/readfield.bin");
-    readMsg("rustmsgs-out/readfieldreply.bin");
+    readMsg( dir,mb, "pinmode.bin");
+    if (mb.payload.type != pt_pinmode || mb.payload.pinmode.pin != 26 || mb.payload.pinmode.mode != 2) {
+      cout << "pinmode msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readpin.bin");
+    if (mb.payload.type != pt_readpin || mb.payload.pin != 22) {
+      cout << "readpin msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readpinreply.bin");
+    if (mb.payload.type != pt_readpinreply || mb.payload.pinval.pin != 26 || mb.payload.pinval.state != 1) {
+      cout << "readpin msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "writepin.bin");
+    if (mb.payload.type != pt_writepin || mb.payload.pinval.pin != 15 || mb.payload.pinval.state != 1) {
+      cout << "writepin msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readanalog.bin");
+    if (mb.payload.type != pt_readanalog || mb.payload.pin != 27) {
+      cout << "readanalog msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readanalogreply.bin");
+    if (mb.payload.type != pt_readanalogreply || mb.payload.analogpinval.pin != 6 || mb.payload.analogpinval.state != 500) {
+      cout << "readanalogreply msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readmem.bin");
+    if (mb.payload.type != pt_readmem || mb.payload.readmem.address != 1500 || mb.payload.readmem.length != 75) {
+      cout << "readmem msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readmemreply.bin");
+    const uint8_t testrm[] = {1, 2, 3, 4, 5};
+
+    cout << "wat: " <<  memcmp(mb.payload.readmemreply.data, (void*)testrm, 4) << endl; 
+    if (mb.payload.type != pt_readmemreply || 
+        mb.payload.readmemreply.length != 5 || 
+        memcmp(mb.payload.readmemreply.data, testrm, 5) != 0) {
+      cout << "readmemreply msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "writemem.bin");
+    const uint8_t testwm[] = {5, 4, 3, 2, 1};
+    if (mb.payload.type != pt_writemem || 
+        mb.payload.writemem.length != 5 || 
+        memcmp(mb.payload.writemem.data, testwm, 5) != 0) {
+      cout << "writemem msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readinfo.bin");
+    if (mb.payload.type != pt_readinfo) {
+      cout << "readinfo msg failed" << endl;
+      return false;
+    }
+
+    readMsg( dir,mb, "readinforeply.bin");
+    if (mb.payload.type != pt_readinforeply || 
+        (mb.payload.remoteinfo.protoversion - 1.1) < 0.00000001 ||
+        mb.payload.remoteinfo.macAddress != 5678 ||
+        mb.payload.remoteinfo.datalen != 5000 ||
+        mb.payload.remoteinfo.fieldcount != 5 )  {
+      cout << "readinforeply msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readhumidity.bin");
+    if (mb.payload.type != pt_readhumidity) {
+      cout << "readhumidity msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readhumidityreply.bin");
+    if (mb.payload.type != pt_readhumidityreply || 
+        (mb.payload.f - 45.7) > 0.000001) {
+      cout << "readhumidityreply msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readtemperature.bin");
+    if (mb.payload.type != pt_readtemperature) {
+      cout << "readtemperature msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readtemperaturereply.bin");
+    if (mb.payload.type != pt_readtemperaturereply || 
+        (mb.payload.f - 98.6) > 0.000001) {
+      cout << "readtemperaturereply msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readfield.bin");
+    if (mb.payload.type != pt_readfield || 
+        mb.payload.readfield.fieldindex != 1) {
+      cout << "readfield msg failed" << endl;
+      return false;
+    }
+    readMsg( dir,mb, "readfieldreply.bin");
+    if (mb.payload.type != pt_readfieldreply || 
+        mb.payload.readfieldreply.fieldindex != 1 || 
+        mb.payload.readfieldreply.offset != 77 || 
+        mb.payload.readfieldreply.length != 20 || 
+        mb.payload.readfieldreply.format != ff_uint32) 
+     {
+      cout << "readfieldreply msg failed" << endl;
+      return false;
+    }
+
+    return true;
 }
 
 
