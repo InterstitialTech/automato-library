@@ -77,10 +77,6 @@ void writeMsgs()
     writeMsg(mb, "readinfo.bin");
 
     setup_readinforeply(mb.payload, 1.1, 5678, 5000, 5);
-
-    std::cout << "RI length: " << (int)payloadSize(mb.payload) << std::endl;
-    std::cout << "RI calced:: " <<  sizeof(uint8_t) +  sizeof(float) +  sizeof(uint64_t) +  sizeof(uint16_t) +  sizeof(uint16_t)  << std::endl;
-
     writeMsg(mb, "readinforeply.bin");
 
     setup_readhumidity(mb.payload);
@@ -106,6 +102,9 @@ void writeMsgs()
 void readMsgs()
 {
   readMsg("rustmsgs-out/ack.bin");
+
+
+
   readMsg("rustmsgs-out/fail.bin");
   readMsg("rustmsgs-out/pinmode.bin");
   readMsg("rustmsgs-out/readpin.bin");
@@ -126,10 +125,36 @@ void readMsgs()
   readMsg("rustmsgs-out/readfieldreply.bin");
 }
 
+
+void showSyntax() {
+  cout << "msgs syntax:" << endl
+    << "msgs in <dirname>" << endl
+    << "msgs out <dirname>" << endl;
+}
+
+
 // these test files are generated from the rust code.
 int main(int argc, char *argv[])
 {
-  writeMsgs();
-  // readMsgs();
+    if (argc == 3)
+    {
+        if (strcmp(argv[1], "in") == 0) {
+         readMsgs(argv[2]);
   return 0;
+        }
+        else if (strcmp(argv[1], "out") == 0) {
+         writeMsgs(argv[2]);
+  return 0;
+        }
+        else
+        {
+          showSyntax();
+  return 1;
+        }
+    }
+    else
+{
+          showSyntax();
+  return 1;
+        }
 }
