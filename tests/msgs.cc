@@ -168,9 +168,9 @@ bool readMsgs(const char *dir)
     readMsg( dir,mb, "readmemreply.bin");
     const uint8_t testrm[] = {1, 2, 3, 4, 5};
 
-    cout << "wat: " <<  memcmp(mb.payload.readmemreply.data, (void*)testrm, 4) << endl; 
-    if (mb.payload.type != pt_readmemreply || 
-        mb.payload.readmemreply.length != 5 || 
+    cout << "wat: " <<  memcmp(mb.payload.readmemreply.data, (void*)testrm, 4) << endl;
+    if (mb.payload.type != pt_readmemreply ||
+        mb.payload.readmemreply.length != 5 ||
         memcmp(mb.payload.readmemreply.data, testrm, 5) != 0) {
       cout << "readmemreply msg failed" << endl;
       return false;
@@ -178,8 +178,8 @@ bool readMsgs(const char *dir)
 
     readMsg( dir,mb, "writemem.bin");
     const uint8_t testwm[] = {5, 4, 3, 2, 1};
-    if (mb.payload.type != pt_writemem || 
-        mb.payload.writemem.length != 5 || 
+    if (mb.payload.type != pt_writemem ||
+        mb.payload.writemem.length != 5 ||
         memcmp(mb.payload.writemem.data, testwm, 5) != 0) {
       cout << "writemem msg failed" << endl;
       return false;
@@ -191,8 +191,8 @@ bool readMsgs(const char *dir)
     }
 
     readMsg( dir,mb, "readinforeply.bin");
-    if (mb.payload.type != pt_readinforeply || 
-        (mb.payload.remoteinfo.protoversion - 1.1) < 0.00000001 ||
+    if (mb.payload.type != pt_readinforeply ||
+        (mb.payload.remoteinfo.protoversion - 1.1) > 0.00000001 ||
         mb.payload.remoteinfo.macAddress != 5678 ||
         mb.payload.remoteinfo.datalen != 5000 ||
         mb.payload.remoteinfo.fieldcount != 5 )  {
@@ -205,7 +205,7 @@ bool readMsgs(const char *dir)
       return false;
     }
     readMsg( dir,mb, "readhumidityreply.bin");
-    if (mb.payload.type != pt_readhumidityreply || 
+    if (mb.payload.type != pt_readhumidityreply ||
         (mb.payload.f - 45.7) > 0.000001) {
       cout << "readhumidityreply msg failed" << endl;
       return false;
@@ -216,23 +216,23 @@ bool readMsgs(const char *dir)
       return false;
     }
     readMsg( dir,mb, "readtemperaturereply.bin");
-    if (mb.payload.type != pt_readtemperaturereply || 
+    if (mb.payload.type != pt_readtemperaturereply ||
         (mb.payload.f - 98.6) > 0.000001) {
       cout << "readtemperaturereply msg failed" << endl;
       return false;
     }
     readMsg( dir,mb, "readfield.bin");
-    if (mb.payload.type != pt_readfield || 
+    if (mb.payload.type != pt_readfield ||
         mb.payload.readfield.fieldindex != 1) {
       cout << "readfield msg failed" << endl;
       return false;
     }
     readMsg( dir,mb, "readfieldreply.bin");
-    if (mb.payload.type != pt_readfieldreply || 
-        mb.payload.readfieldreply.fieldindex != 1 || 
-        mb.payload.readfieldreply.offset != 77 || 
-        mb.payload.readfieldreply.length != 20 || 
-        mb.payload.readfieldreply.format != ff_uint32) 
+    if (mb.payload.type != pt_readfieldreply ||
+        mb.payload.readfieldreply.fieldindex != 7 ||
+        mb.payload.readfieldreply.offset != 77 ||
+        mb.payload.readfieldreply.length != 20 ||
+        mb.payload.readfieldreply.format != ff_uint32)
      {
       cout << "readfieldreply msg failed" << endl;
       return false;
