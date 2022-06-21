@@ -1,0 +1,3 @@
+[submodule "tests/testduino"]
+	path = tests/testduino
+	url = https://github.com/InterstitialTech/testduino.git
