@@ -202,6 +202,7 @@ void setup_readfieldreply(Payload &p, uint16_t fieldindex, MapField &fieldinfo)
     p.type = pt_readfieldreply;
     strncpy(p.readfieldreply.name, fieldinfo.name, 24);   // max of 25!
     p.readfieldreply.name[24] = '\0';  // ensure null termination
+    p.readfieldreply.fieldindex = fieldindex;
     p.readfieldreply.offset = fieldinfo.offset;
     p.readfieldreply.length = fieldinfo.length;
     p.readfieldreply.format = fieldinfo.format;
