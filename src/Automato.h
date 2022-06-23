@@ -35,11 +35,27 @@ private:
     SerialReader serialReader;
 
 public:
-    Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs);
+    // Simplest Automato constructor.
+    Automato(uint8_t networkid, bool allowRemotePinOutputs);
+    // Add a data area that can be read or written remotely.
+    Automato(uint8_t networkid,
+        void *databuf,
+        uint16_t datalen,
+        bool allowRemotePinOutputs);
+    // Data area as above, but also a remotely-accessible memory map.
+    Automato(uint8_t networkid,
+        void *databuf,
+        uint16_t datalen,
+        void *mapentries,
+        uint16_t mapentrycount,
+        bool allowRemotePinOutputs);
     void init(float frequency = 915.0, uint8_t power = 13);
 
     void *databuf;
     uint16_t datalen;
+
+    void *memoryMap;
+    uint64_t fieldCount;
 
     void clearScreen(void);
 
@@ -87,5 +103,10 @@ void writeSerialMessage(uint8_t from_id, Msgbuf &mb);
 // read/write from the memory map on a remote Automato.
 #define remote_memwrite(dest, struct, field, val) remoteMemWrite(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
 #define remote_memread(dest, struct, field, val) remoteMemRead(dest, (uint16_t)offsetof(struct, field), (uint8_t)sizeof(struct ::field), (void*)val)
+
+
+// define memory map fields 'documentation' for remotes to read.
+#define map_field(struct, field, format) MapField { #field, offsetof(struct, field), sizeof(struct ::field), format }
+
 
 #endif /* AUTOMATO_SENSOR */

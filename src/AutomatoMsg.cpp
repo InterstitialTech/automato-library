@@ -45,6 +45,10 @@ bool isReply(PayloadType pt)
             return false;
         case pt_readanalogreply:
             return true;
+        case pt_readfield:
+            return false;
+        case pt_readfieldreply:
+            return true;
         default:
             return false;
     }
@@ -156,12 +160,14 @@ void setup_readinfo(Payload &p)
 void setup_readinforeply(Payload &p,
     float protoversion,
     uint64_t macAddress,
-    uint16_t datalen)
+    uint16_t datalen,
+    uint16_t fieldcount)
 {
     p.type = pt_readinforeply;
     p.remoteinfo.protoversion = protoversion;
     p.remoteinfo.macAddress = macAddress;
     p.remoteinfo.datalen = datalen;
+    p.remoteinfo.fieldcount = fieldcount;
 }
 
 void setup_readhumidity(Payload &p)
@@ -184,6 +190,22 @@ void setup_readtemperaturereply(Payload &p, float temperature)
 {
     p.type = pt_readtemperaturereply;
     p.f = temperature;
+}
+
+void setup_readfield(Payload &p, uint16_t fieldindex)
+{
+    p.type = pt_readfield;
+    p.readfield.fieldindex = fieldindex;
+}
+void setup_readfieldreply(Payload &p, uint16_t fieldindex, MapField &fieldinfo)
+{
+    p.type = pt_readfieldreply;
+    strncpy(p.readfieldreply.name, fieldinfo.name, 24);   // max of 25!
+    p.readfieldreply.name[24] = '\0';  // ensure null termination
+    p.readfieldreply.fieldindex = fieldindex;
+    p.readfieldreply.offset = fieldinfo.offset;
+    p.readfieldreply.length = fieldinfo.length;
+    p.readfieldreply.format = fieldinfo.format;
 }
 
 uint8_t payloadSize(Payload &p) {
@@ -222,6 +244,10 @@ uint8_t payloadSize(Payload &p) {
             return sizeof(uint8_t);
         case pt_readtemperaturereply:
             return sizeof(uint8_t)+ sizeof(float);
+        case pt_readfield:
+            return sizeof(uint8_t) + sizeof(uint16_t);
+        case pt_readfieldreply:
+            return sizeof(uint8_t) + sizeof(uint16_t) * 3 + sizeof(uint8_t) + 25;
         default:
             return 0;
     }
@@ -322,6 +348,8 @@ bool printPayload(Payload &p)
             Serial.println(p.remoteinfo.macAddress);
             Serial.print("datalen:");
             Serial.println(p.remoteinfo.datalen);
+            Serial.print("fieldcount:");
+            Serial.println(p.remoteinfo.fieldcount);
             return true;
         case pt_readhumidity:
             Serial.println("pt_readhumidity");
@@ -338,6 +366,24 @@ bool printPayload(Payload &p)
             Serial.println("pt_readtemperaturereply");
             Serial.print("temperature:");
             Serial.println(p.f);
+            return true;
+        case pt_readfield:
+            Serial.println("pt_readfield");
+            Serial.print("fieldindex: ");
+            Serial.println(p.readfield.fieldindex);
+            return true;
+        case pt_readfieldreply:
+            Serial.println("pt_readfieldreply");
+            Serial.print("fieldindex: ");
+            Serial.println(p.readfieldreply.fieldindex);
+            Serial.print("offset: ");
+            Serial.println(p.readfieldreply.offset);
+            Serial.print("length: ");
+            Serial.println(p.readfieldreply.length);
+            Serial.print("format: ");
+            Serial.println(p.readfieldreply.format);
+            Serial.print("name: ");
+            Serial.println(p.readfieldreply.name);
             return true;
         default:
             Serial.print("unknown message type: ");

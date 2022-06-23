@@ -11,31 +11,34 @@ extern float protoVersion;
 // message structs.
 // --------------------------------------------------------
 
-enum PayloadType {
-    pt_ack,
-    pt_fail,
-    pt_pinmode,
-    pt_readpin,
-    pt_readpinreply,
-    pt_writepin,
-    pt_readmem,
-    pt_readmemreply,
-    pt_writemem,
-    pt_readinfo,
-    pt_readinforeply,
-    pt_readhumidity,
-    pt_readhumidityreply,
-    pt_readtemperature,
-    pt_readtemperaturereply,
-    pt_readanalog,
-    pt_readanalogreply,
-    pt_count // not a payload type; just the number of payload types.
+enum PayloadType : uint8_t {
+    pt_ack = 0,
+    pt_fail = 1,
+    pt_pinmode = 2,
+    pt_readpin = 3,
+    pt_readpinreply = 4,
+    pt_writepin = 5,
+    pt_readmem = 6,
+    pt_readmemreply = 7,
+    pt_writemem = 8,
+    pt_readinfo = 9,
+    pt_readinforeply = 10,
+    pt_readhumidity = 11,
+    pt_readhumidityreply = 12,
+    pt_readtemperature = 13,
+    pt_readtemperaturereply = 14,
+    pt_readanalog = 15,
+    pt_readanalogreply = 16,
+    pt_readfield = 17,
+    pt_readfieldreply = 18,
+    pt_count = 19 // not a payload type; just the number of payload types.
 };
 
 struct RemoteInfo {
     float protoversion;
     uint64_t macAddress;
     uint16_t datalen;
+    uint16_t fieldcount;
 } __attribute__((packed));
 
 struct Pinval {
@@ -66,15 +69,26 @@ struct ReadmemReply {
     uint8_t data[MAX_READMEM];
 } __attribute__((packed));
 
-
 struct Writemem {
     uint16_t address;
     uint8_t length;
     uint8_t data[MAX_WRITEMEM];
 } __attribute__((packed));
 
+struct ReadFieldInfo {
+    uint16_t fieldindex;
+} __attribute__((packed));
+
+struct FieldInfo {
+    uint16_t fieldindex;
+    uint16_t offset;
+    uint8_t length;
+    uint8_t format;
+    char name[25];
+} __attribute__((packed));
+
 struct Payload {
-    uint8_t type; // PayloadType
+    PayloadType type;
     union {
         Pinval pinval;
         Pinmode pinmode;
@@ -83,6 +97,8 @@ struct Payload {
         ReadmemReply readmemreply;
         Writemem writemem;
         RemoteInfo remoteinfo;
+        ReadFieldInfo readfield;
+        FieldInfo readfieldreply;
         uint8_t failcode;
         uint8_t pin;
         float f;
@@ -103,6 +119,30 @@ struct Msgbuf {
         Payload payload; // as Payload for RHMesh
     };
 } __attribute__((packed));
+
+// -------------------------------------------------------
+// Memory Map structs; not messages per se, but used to
+// build the FieldInfo message.
+// -------------------------------------------------------
+
+enum FieldFormat : uint8_t {
+    ff_char,
+    ff_float,
+    ff_uint8,
+    ff_uint16,
+    ff_uint32,
+    ff_int8,
+    ff_int16,
+    ff_int32,
+    ff_other
+};
+
+struct MapField {
+    const char * name;
+    uint16_t offset;
+    uint16_t length;
+    FieldFormat format;
+};
 
 // --------------------------------------------------------
 // message functions.
@@ -138,7 +178,11 @@ void setup_readinfo(Payload &p);
 void setup_readinforeply(Payload &p,
     float protoversion,
     uint64_t macAddress,
-    uint16_t datalen);
+    uint16_t datalen,
+    uint16_t fieldcount);
+
+void setup_readfield(Payload &p, uint16_t fieldindex);
+void setup_readfieldreply(Payload &p, uint16_t fieldindex, MapField &fieldinfo);
 
 bool succeeded(Payload &p);
 
