@@ -231,7 +231,7 @@ uint8_t payloadSize(Payload &p) {
         case pt_readmemreply:
             return sizeof(uint8_t) + sizeof(uint8_t) + p.readmemreply.length;
         case pt_writemem:
-            return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t) + p.readmemreply.length;
+            return sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t) + p.writemem.length;
         case pt_readinfo:
             return sizeof(uint8_t);
         case pt_readinforeply:
