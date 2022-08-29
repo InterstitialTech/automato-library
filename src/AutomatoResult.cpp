@@ -33,6 +33,8 @@ const char* resultString(ResultCode rc)
             return "router error unable to deliver";
         case rc_invalid_rh_router_error:
             return "invalid rh router error code";
+        case rc_invalid_mapfield_index:
+            return "rc_invalid_mapfield_index";
         default:
             return "unknown error code";
     }
