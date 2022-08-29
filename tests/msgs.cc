@@ -10,7 +10,7 @@ using namespace std;
 
 void readMsg(const char *dir, Msgbuf &mb, const char *fname)
 {
-    std::cout << std::endl << fname << std::endl;
+    std::cout << fname << std::endl;
 
     string s(dir);
     s += "//";
@@ -19,14 +19,20 @@ void readMsg(const char *dir, Msgbuf &mb, const char *fname)
     FILE * filp = fopen(s.c_str(), "rb");
     int bytes_read = fread(mb.buf, sizeof(char), RH_RF95_MAX_MESSAGE_LEN, filp);
 
-    std::cout << "read bytes: " << bytes_read << std::endl;
-
-    for (int i = 0; i < bytes_read; ++i)
+    bool debug = false;
+    if (debug) 
     {
-        std::cout << (int)mb.buf[i] << " " << endl;
+        std::cout << "read bytes: " << bytes_read << std::endl;
+        for (int i = 0; i < bytes_read; ++i)
+        {
+            std::cout << (int)mb.buf[i] << " " << endl;
+        }
+
     }
 
     printPayload(mb.payload);
+
+    cout << std::endl; 
 }
 
 
@@ -191,8 +197,9 @@ bool readMsgs(const char *dir)
     }
 
     readMsg( dir,mb, "readinforeply.bin");
+
     if (mb.payload.type != pt_readinforeply ||
-        (mb.payload.remoteinfo.protoversion - 1.1) > 0.00000001 ||
+        (mb.payload.remoteinfo.protoversion - 1.1) > 0.0000001 ||
         mb.payload.remoteinfo.macAddress != 5678 ||
         mb.payload.remoteinfo.datalen != 5000 ||
         mb.payload.remoteinfo.fieldcount != 5 )  {
@@ -238,6 +245,7 @@ bool readMsgs(const char *dir)
       return false;
     }
 
+    cout << "tests succeeded" << endl;
     return true;
 }
 
