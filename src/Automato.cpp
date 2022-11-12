@@ -10,10 +10,8 @@
 #include <AutomatoMsg.h>
 #include <RHMesh.h>
 
-RH_RF95 rf95(PIN_LORA_CS, PIN_LORA_IRQ); // Slave select, interrupt pin for Automato Sensor Module.
-
-Msgbuf mb;
-uint8_t from_id;
+// Msgbuf mb;
+// uint8_t from_id;
 
 // see note in Automato.h
 Adafruit_ILI9341 screen(PIN_LCD_CS, PIN_LCD_DC, PIN_LCD_RST);
@@ -39,8 +37,7 @@ AutomatoResult arFromRc(uint8_t rc)
     }
 }
 
-Automato::Automato(uint8_t networkid, bool allowRemotePinOutputs)
-    : rhmesh(rf95, networkid),
+Automato::Automato(bool allowRemotePinOutputs)
     databuf(nullptr),
     datalen(0),
     memoryMap(nullptr),
@@ -49,8 +46,7 @@ Automato::Automato(uint8_t networkid, bool allowRemotePinOutputs)
 {
 }
 
-Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allowRemotePinOutputs)
-    : rhmesh(rf95, networkid), databuf(databuf),
+Automato::Automato(void *databuf, uint16_t datalen, bool allowRemotePinOutputs)
     datalen(datalen),
     memoryMap(nullptr),
     fieldCount(0),
@@ -58,14 +54,13 @@ Automato::Automato(uint8_t networkid, void *databuf, uint16_t datalen, bool allo
 {
 }
 
-Automato::Automato(uint8_t networkid,
+Automato::Automato(
     void *databuf,
     uint16_t datalen,
     void *mapentries,
     uint16_t mapentrycount,
     bool allowRemotePinOutputs)
-    : rhmesh(rf95, networkid),
-    databuf(databuf),
+    : databuf(databuf),
     datalen(datalen),
     memoryMap(mapentries),
     fieldCount(mapentrycount),
@@ -75,13 +70,6 @@ Automato::Automato(uint8_t networkid,
 
 void Automato::init(float frequency, uint8_t power)
 {
-    rf95.init();
-
-    // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-    // specify by country?
-    rf95.setFrequency(frequency);
-    rf95.setTxPower(power);
-
     // user LED
     pinMode(PIN_LED, OUTPUT);
 
@@ -125,210 +113,6 @@ uint64_t Automato::macAddress(void)
 {
     return ESP.getEfuseMac();
 }
-
-AutomatoResult Automato::remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode)
-{
-    setup_pinmode(mb.payload, pin, mode);
-    return sendRequest(network_id, mb);
-}
-
-AutomatoResult Automato::remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value)
-{
-    setup_writepin(mb.payload, pin, value);
-    return sendRequest(network_id, mb);
-}
-
-AutomatoResult Automato::remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result)
-{
-    setup_readpin(mb.payload, pin);
-    auto ar = sendRequest(network_id, mb);
-    if (ar)
-    {
-        if (mb.payload.type == pt_readpinreply) {
-            *result = mb.payload.pinval.state;
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result)
-{
-    setup_readanalog(mb.payload, pin);
-    auto ar = sendRequest(network_id, mb);
-    if (ar)
-    {
-        if (mb.payload.type == pt_readanalogreply) {
-            *result = mb.payload.analogpinval.state;
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::remoteMemWrite(uint8_t network_id, uint16_t address, uint8_t length, void *value)
-{
-    AutomatoResult ar;
-    bool tmp = (ar = setup_writemem(mb.payload, address, length, value))
-        && (ar = sendRequest(network_id, mb));
-
-    return ar;
-}
-
-AutomatoResult Automato::remoteMemRead(uint8_t network_id, uint16_t address, uint8_t length, void *value)
-{
-    AutomatoResult ar;
-
-    if ((ar = setup_readmem(mb.payload, address, length)) && (ar = sendRequest(network_id, mb)))
-    {
-        if (mb.payload.type == pt_readmemreply) {
-            memcpy(value, (void*)&mb.payload.readmemreply.data, length);
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::remoteTemperature(uint8_t network_id, float &temperature)
-{
-    setup_readtemperature(mb.payload);
-    auto ar = sendRequest(network_id, mb);
-    if (ar)
-    {
-        if (mb.payload.type == pt_readtemperaturereply) {
-            temperature = mb.payload.f;
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::remoteHumidity(uint8_t network_id, float &humidity)
-{
-    setup_readhumidity(mb.payload);
-    auto ar = sendRequest(network_id, mb);
-    if (ar)
-    {
-        if (mb.payload.type == pt_readhumidityreply) {
-            humidity = mb.payload.f;
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info)
-{
-    setup_readinfo(mb.payload);
-    auto ar = sendRequest(network_id, mb);
-    if (ar)
-    {
-        if (mb.payload.type == pt_readinforeply) {
-            memcpy((void*)&info, (void*)&mb.payload.remoteinfo, sizeof(RemoteInfo));
-            return AutomatoResult(rc_ok);
-        }
-        else
-            return AutomatoResult(rc_invalid_reply_message);
-    }
-    else
-        return ar;
-}
-
-AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
-{
-    uint8_t err;
-    if ((err = rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), network_id)) == RH_ROUTER_ERROR_NONE) {
-        uint8_t from_id;
-
-        // mesh already does an Ack behind the scenes, but only between this
-        // node and the next.  So we have to do our own ack with the final
-        // destination.
-        while (receiveMessage(from_id, mb))
-        {
-            if (mb.payload.type == pt_fail)
-                return AutomatoResult((ResultCode)mb.payload.failcode);
-            else if (isReply((PayloadType)mb.payload.type))
-                return AutomatoResult(rc_ok);
-            else
-            {
-                // not a reply, a request.  process and listen for a reply.
-                // TODO: remove?
-                handleLoraMessage(from_id, mb);
-            }
-        }
-
-        return AutomatoResult(rc_reply_timeout);
-    }
-    else
-    {
-        return arFromRc(err);
-    }
-}
-
-AutomatoResult Automato::sendReply(uint8_t network_id, Payload &p)
-{
-    return arFromRc(rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p), network_id));
-}
-
-bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb)
-{
-    uint8_t len = sizeof(mb.buf);
-    mb.payload.f = 0;
-    if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-AutomatoResult Automato::handleLoraMessage(uint8_t from_id, Msgbuf &mb)
-{
-    handleMessage(mb);
-    return sendReply(from_id, mb.payload);
-}
-
-AutomatoResult Automato::handleSerialMessage(uint8_t to_id, Msgbuf &mb)
-{
-    if (to_id == rhmesh.thisAddress())
-    {
-        handleMessage(mb);
-        return AutomatoResult(rc_ok);
-    }
-    else
-    {
-        // forward to another automato!
-        return sendRequest(to_id, mb);
-    }
-}
-
-void writeSerialMessage(uint8_t from_id, Msgbuf &mb)
-{
-    uint8_t ps = payloadSize(mb.payload);
-    Serial.write('m');       // 'm' for message
-    Serial.write(from_id);   // from which automato.
-    Serial.write(ps);        // payload length
-    Serial.write(mb.buf, ps);
-}
-
 
 void Automato::handleMessage(Msgbuf &mb)
 {
@@ -459,38 +243,3 @@ void Automato::handleMessage(Msgbuf &mb)
     };
 }
 
-// receives and handles remote control messages.
-AutomatoResult Automato::doRemoteControl()
-{
-    if (receiveMessage(from_id, mb)) {
-        return handleLoraMessage(from_id, mb);
-    }
-    else
-    {
-        return AutomatoResult(rc_no_message_received);
-    }
-}
-
-
-// receives and handles remote control messages.
-AutomatoResult Automato::doSerial()
-{
-    if (receiveSerialMessage()) {
-        do
-        {
-            handleSerialMessage(serialReader.to_id, serialReader.mb);
-            // write the response back through serial
-            writeSerialMessage(serialReader.to_id, serialReader.mb);
-        } while (receiveSerialMessage());
-        return AutomatoResult(rc_ok);
-    }
-    else
-    {
-        return AutomatoResult(rc_no_message_received);
-    }
-}
-
-bool Automato::receiveSerialMessage()
-{
-    return serialReader.read();
-}
