@@ -14,13 +14,32 @@ class SerialReader {
 public:
     SerialReader() : serialState(Ready), length(0), to_id(0), received(0) {}
     SerialState serialState;
-    int8_t length;
-    int8_t received;
-    int8_t to_id;
+    uint8_t length;
+    uint8_t received;
+    // int8_t to_id;
+    AutomatoAddress to_address;
 
     Msgbuf mb;
 
     bool read();
 };
+
+
+// FIX to handle non-lora addresses
+
+class AutomatoSerial {
+public: 
+    AutomatoSerial(Automato &automato);
+
+    Automato &automato;
+    SerialReader serialReader;
+
+    // receive and handle serial messages.
+    AutomatoResult doSerial();
+    bool receiveSerialMessage();
+    AutomatoResult handleSerialMessage(uint8_t to_id, Msgbuf &mb);
+}
+
+void writeSerialMessage(uint8_t from_id, Msgbuf &mb);
 
 #endif // SerialReader_h_INCLUDED
