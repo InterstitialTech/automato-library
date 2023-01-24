@@ -35,4 +35,3 @@ private:
 };
 
 #endif // AutomatoResult_h_INCLUDED
-

@@ -251,6 +251,7 @@ AutomatoResult Automato::remoteAutomatoInfo(uint8_t network_id, RemoteInfo &info
 
 AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
 {
+    // this function should end with a reply message in the &mb
     uint8_t err;
     if ((err = rhmesh.sendtoWait((uint8_t*)&mb.payload, payloadSize(mb.payload), network_id)) == RH_ROUTER_ERROR_NONE) {
         uint8_t from_id;
@@ -272,11 +273,14 @@ AutomatoResult Automato::sendRequest(uint8_t network_id, Msgbuf &mb)
             }
         }
 
+        setup_fail(mb.payload, rc_reply_timeout);
         return AutomatoResult(rc_reply_timeout);
     }
     else
     {
-        return arFromRc(err);
+        AutomatoResult ar = arFromRc(err);
+        setup_fail(mb.payload, ar.resultCode());
+        return ar;
     }
 }
 

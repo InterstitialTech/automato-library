@@ -59,6 +59,7 @@ public:
 
     void clearScreen(void);
 
+    // TODO: don't cache readings, let the user do that.
     void readTempHumidity();
     float getTemperature();
     float getHumidity();
