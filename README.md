@@ -2,16 +2,11 @@
 
 This library implements the Automato API via the "Automato" class interface.
 
-
 ## Dependencies
-* Adafruit GFX
-* Adafruit ILI9341
-* SparkFun SHTC3
-* [RadioHead Packet Radio library](http://www.airspayce.com/mikem/arduino/RadioHead/index.html)
-
-The RadioHead library is not available through the Arduino IDE, so install manually by downloading [this zipfile](http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.120.zip).
-Then unzip it in the Arduino/libraries folder.
-
+* GFX (by Adafruit)
+* ILI9341 (by Adafruit)
+* SHTC3 (by SparkFun)
+* Radiohead, version 1.120.0 (by Mike McCauley)
 
 ## Manual Installation
 In your Arduino/libraries directory:
