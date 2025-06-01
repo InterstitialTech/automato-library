@@ -9,7 +9,7 @@
 
 #include <Automato.h>
 
-Automato automato;
+Automato automato(255, false);  // network ID, allow remote pin outputs
 
 void setup() {
 
