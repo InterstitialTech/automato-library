@@ -494,3 +494,37 @@ bool Automato::receiveSerialMessage()
 {
     return serialReader.read();
 }
+
+void Automato::initEspNow(const uint8_t *mac_dest) {
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+  memcpy(this->espnow_peer_info.peer_addr, mac_dest, 6);
+  this->espnow_peer_info.channel = 0;  
+  this->espnow_peer_info.encrypt = false;
+  if (esp_now_add_peer(&this->espnow_peer_info) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
+}
+
+void Automato::sendEspNowString(const uint8_t *mac_dest, const char *str) {
+  esp_err_t rc;
+  size_t len = strlen(str);
+
+  if (len < 250) {
+    strcpy((char *)this->espnow_buf, str);
+    rc = esp_now_send(mac_dest, this->espnow_buf, len+1);
+  } else {
+    strncpy((char *)this->espnow_buf, str, 249);
+    this->espnow_buf[249] = '\0';
+    rc = esp_now_send(mac_dest, this->espnow_buf, min(len, (size_t)250));
+  }
+
+  if (rc != ESP_OK) {
+    Serial.println("Error sending data over esp-now");
+  }
+}
+

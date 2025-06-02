@@ -15,6 +15,8 @@
 #include "Adafruit_ILI9341.h"
 #include "SparkFun_SHTC3.h"
 #include <RHMesh.h>
+#include <esp_now.h>
+#include <WiFi.h>
 
 
 // this *should* be a member of the Automato class, but that's currently
@@ -33,6 +35,9 @@ private:
     bool allowRemotePinOutputs;
 
     SerialReader serialReader;
+
+    uint8_t espnow_buf[250];
+    esp_now_peer_info_t espnow_peer_info;
 
 public:
     // Simplest Automato constructor.
@@ -94,6 +99,10 @@ public:
     AutomatoResult handleLoraMessage(uint8_t from_id, Msgbuf &mb);
     AutomatoResult handleSerialMessage(uint8_t to_id, Msgbuf &mb);
     void handleMessage(Msgbuf &mb);
+
+    void initEspNow(const uint8_t *mac_dest);
+    void sendEspNowString(const uint8_t *mac_dest, const char *str);
+    //void espnow_recv_str(char *str);
 
 };
 
