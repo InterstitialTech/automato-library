@@ -17,6 +17,7 @@
 #include <RHMesh.h>
 #include <esp_now.h>
 #include <WiFi.h>
+#include <esp_wifi.h>
 
 
 // this *should* be a member of the Automato class, but that's currently
@@ -100,9 +101,11 @@ public:
     AutomatoResult handleSerialMessage(uint8_t to_id, Msgbuf &mb);
     void handleMessage(Msgbuf &mb);
 
-    void initEspNow(const uint8_t *mac_dest);
-    void sendEspNowString(const uint8_t *mac_dest, const char *str);
-    //void espnow_recv_str(char *str);
+    void initEspNow(void);
+    void peerEspNow(const uint8_t *mac_dest);
+    void sendStringEspNow(const uint8_t *mac_dest, const char *str);
+    void setCallbackEspNow(esp_now_recv_cb_t cb);
+    void printMacAddressEspNow(void);
 
 };
 

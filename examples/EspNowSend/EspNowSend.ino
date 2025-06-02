@@ -8,14 +8,15 @@ Automato automato(255, false);
 void setup() {
 
   automato.init();
-  automato.initEspNow(MAC_DEST);
+  automato.initEspNow();
+  automato.peerEspNow(MAC_DEST);
 
 }
 
 void loop() {
 
   digitalWrite(PIN_LED, HIGH);
-  automato.sendEspNowString(MAC_DEST, "heyyy");
+  automato.sendStringEspNow(MAC_DEST, "hello Automato!");
   delay(100);
   digitalWrite(PIN_LED, LOW);
   delay(1000);
