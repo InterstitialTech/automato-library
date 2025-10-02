@@ -1,3 +1,5 @@
+#if defined(ARDUINO_AUTOMATO_SENSOR)
+
 #include "SerialReader.h"
 
 #include <Arduino.h>
@@ -44,3 +46,5 @@ bool SerialReader::read()
     // no message ready yet!
     return false;
 }
+
+#endif

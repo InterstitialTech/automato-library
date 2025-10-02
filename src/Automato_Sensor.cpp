@@ -1,10 +1,6 @@
-/*
+#if defined(ARDUINO_AUTOMATO_SENSOR)
 
-   An Arduino library for the Automato sensor board
-
- */
-
-#include <Automato.h>
+#include <Automato_sensor.h>
 #include <Esp.h>
 #include <RH_RF95.h>
 #include <AutomatoMsg.h>
@@ -549,3 +545,4 @@ void Automato::printMacAddressEspNow(void) {
   }
 }
 
+#endif

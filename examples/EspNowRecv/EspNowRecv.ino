@@ -5,7 +5,7 @@ Automato automato(255, false);
 // TODO: move these to a class method
 uint8_t buf[250];
 bool received = false;
-void callback(const uint8_t *mac, const uint8_t *data, int len) {
+void callback(const esp_now_recv_info* info, const uint8_t* data, int len) {
   memcpy(&buf, data, len);
   received = true;
   Serial.print("Bytes received: ");
@@ -16,11 +16,11 @@ void callback(const uint8_t *mac, const uint8_t *data, int len) {
 
 void setup() {
 
-  automato.init();
-  automato.initEspNow();
-
   Serial.begin(115200);
   while (!Serial) {}
+
+  automato.init();
+  automato.initEspNow();
 
   automato.setCallbackEspNow(callback);
   automato.printMacAddressEspNow(); // for debugging
@@ -31,9 +31,9 @@ void loop() {
 
   if (received) {
     received = false;
-    digitalWrite(PIN_LED, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
-    digitalWrite(PIN_LED, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(900);
   }
 

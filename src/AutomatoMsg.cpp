@@ -1,3 +1,5 @@
+#if defined(ARDUINO_AUTOMATO_SENSOR)
+
 #include <AutomatoMsg.h>
 
 float protoVersion(0.1);
@@ -391,3 +393,5 @@ bool printPayload(Payload &p)
             return false;
     }
 }
+
+#endif
