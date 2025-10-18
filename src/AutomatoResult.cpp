@@ -1,12 +1,13 @@
 #include <AutomatoResult.h>
 
-const char* resultString(ResultCode rc)
-{
+const char *resultString(ResultCode rc) {
     switch (rc) {
         case rc_ok:
             return "ok";
         case rc_no_message_received:
             return "no message received";
+        case rc_esp_now_error:
+            return "rc_esp_now_error";
         case rc_invalid_message_type:
             return "invalid message type";
         case rc_invalid_pin_number:
@@ -40,35 +41,17 @@ const char* resultString(ResultCode rc)
     }
 }
 
-AutomatoResult::operator bool () {
+AutomatoResult::operator bool() {
     if (this->rc == rc_ok)
         return true;
     else
         return false;
 }
 
-const char* AutomatoResult::as_string() const
-{
-    return resultString(rc);
-}
+const char *AutomatoResult::as_string() const { return resultString(rc); }
 
-ResultCode AutomatoResult::resultCode() const
-{
-    return this->rc;
-}
+ResultCode AutomatoResult::resultCode() const { return this->rc; }
 
+AutomatoResult::AutomatoResult() { this->rc = rc_ok; }
 
-AutomatoResult::AutomatoResult()
-{
-    this->rc = rc_ok;
-}
-
-AutomatoResult::AutomatoResult(ResultCode rc)
-{
-    this->rc = rc;
-}
-
-
-
-
-
+AutomatoResult::AutomatoResult(ResultCode rc) { this->rc = rc; }

@@ -2,7 +2,7 @@
 #define Automatomsg_hh_INCLUDED
 
 #include <Arduino.h>
-#include <RH_RF95.h>
+// #include <RH_RF95.h>
 #include <AutomatoResult.h>
 
 extern float protoVersion;
@@ -10,6 +10,10 @@ extern float protoVersion;
 // --------------------------------------------------------
 // message structs.
 // --------------------------------------------------------
+//
+
+#define MAX_MESSAGE_LEN 251
+// static_assert(MAX_MESSAGE_LEN <= RH_RF95_MAX_MESSAGE_LEN);
 
 enum PayloadType : uint8_t {
     pt_ack = 0,
@@ -61,8 +65,9 @@ struct Readmem {
     uint8_t length;
 } __attribute__((packed));
 
-#define MAX_WRITEMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(uint8_t)
-#define MAX_READMEM RH_RF95_MAX_MESSAGE_LEN - sizeof(uint8_t) - sizeof(uint8_t)
+#define MAX_WRITEMEM                                                           \
+    MAX_MESSAGE_LEN - sizeof(uint16_t) - sizeof(uint8_t) - sizeof(uint8_t)
+#define MAX_READMEM MAX_MESSAGE_LEN - sizeof(uint8_t) - sizeof(uint8_t)
 
 struct ReadmemReply {
     uint8_t length;
@@ -114,7 +119,7 @@ struct Message {
 
 struct Msgbuf {
     union {
-        uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+        uint8_t buf[MAX_MESSAGE_LEN];
         Message msg;     // as Message for router-less
         Payload payload; // as Payload for RHMesh
     };
@@ -138,7 +143,7 @@ enum FieldFormat : uint8_t {
 };
 
 struct MapField {
-    const char * name;
+    const char *name;
     uint16_t offset;
     uint16_t length;
     FieldFormat format;
@@ -165,8 +170,9 @@ void setup_readanalog(Payload &p, uint8_t pin);
 void setup_readanalogreply(Payload &p, uint8_t pin, uint16_t state);
 
 AutomatoResult setup_readmem(Payload &p, uint16_t address, uint8_t length);
-AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void* mem);
-AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length, void* mem);
+AutomatoResult setup_readmemreply(Payload &p, uint8_t length, void *mem);
+AutomatoResult setup_writemem(Payload &p, uint16_t address, uint8_t length,
+                              void *mem);
 
 void setup_readhumidity(Payload &p);
 void setup_readhumidityreply(Payload &p, float humidity);
@@ -175,11 +181,8 @@ void setup_readtemperature(Payload &p);
 void setup_readtemperaturereply(Payload &p, float temperature);
 
 void setup_readinfo(Payload &p);
-void setup_readinforeply(Payload &p,
-    float protoversion,
-    uint64_t macAddress,
-    uint16_t datalen,
-    uint16_t fieldcount);
+void setup_readinforeply(Payload &p, float protoversion, uint64_t macAddress,
+                         uint16_t datalen, uint16_t fieldcount);
 
 void setup_readfield(Payload &p, uint16_t fieldindex);
 void setup_readfieldreply(Payload &p, uint16_t fieldindex, MapField &fieldinfo);

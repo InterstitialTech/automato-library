@@ -71,7 +71,6 @@ public:
     AutomatoResult remoteDigitalWrite(uint8_t network_id, uint8_t pin, uint8_t value);    // HIGH or LOW
     AutomatoResult remoteDigitalRead(uint8_t network_id, uint8_t pin, uint8_t *result);
     AutomatoResult remotePinMode(uint8_t network_id, uint8_t pin, uint8_t mode);    // INPUT, OUTPUT, or INPUT_PULLUP
-
     AutomatoResult remoteAnalogRead(uint8_t network_id, uint8_t pin, uint16_t *result);
 
     // 'raw' memory read/write.  use the macros below instead.

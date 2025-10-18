@@ -5,6 +5,7 @@ Automato automato(255, false);
 // TODO: move these to a class method
 uint8_t buf[250];
 bool received = false;
+
 void callback(const esp_now_recv_info* info, const uint8_t* data, int len) {
   memcpy(&buf, data, len);
   received = true;
