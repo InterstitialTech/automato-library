@@ -1,4 +1,4 @@
-#if defined(ARDUINO_AUTOMATO_SENSOR)
+// #if defined(ARDUINO_AUTOMATO_SENSOR)
 
 #include <AutomatoMsg.h>
 
@@ -394,4 +394,4 @@ bool printPayload(Payload &p)
     }
 }
 
-#endif
+// #endif

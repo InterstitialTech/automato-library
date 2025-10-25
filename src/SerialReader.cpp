@@ -1,5 +1,3 @@
-#if defined(ARDUINO_AUTOMATO_SENSOR)
-
 #include "SerialReader.h"
 
 #include <Arduino.h>
@@ -10,14 +8,33 @@ bool SerialReader::read()
         uint8_t i = Serial.read();
         switch (serialState) {
             case Ready:
-                if (i == 'm') {
-                    serialState = ToId;
+                if (i == 'l') {
+                    serialState = LoraId;
+                    id_type = Lora;
+                    received = 0;
+                }
+                else if (i == 'e') {
+                    serialState = EspNowId;
+                    id_type = EspNow;
                     received = 0;
                 }
                 break;
-            case ToId:
-                to_id = i;
+            case LoraId:
+                lora_id = i;
                 serialState = Length;
+                break;
+            case EspNowId:
+                serialState = Length;
+                if (received < 6)
+                {
+                  esp_now_id[received] = i;
+                    received++;
+                }
+                else
+                {
+                    esp_now_id[received] = i; received = 0;
+                    serialState = Length;
+                }
                 break;
             case Length:
                 length = i;
@@ -47,4 +64,3 @@ bool SerialReader::read()
     return false;
 }
 
-#endif

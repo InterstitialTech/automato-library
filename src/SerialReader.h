@@ -5,18 +5,27 @@
 
 enum SerialState {
     Ready,
-    ToId,
+    LoraId,
+    EspNowId,
     Length,
     Msg
 };
 
+enum IdType {
+    Lora,
+    EspNow,
+};
+
 class SerialReader {
 public:
-    SerialReader() : serialState(Ready), length(0), to_id(0), received(0) {}
+    SerialReader() : serialState(Ready), length(0), id_type(Lora), lora_id(0), esp_now_id({0}), received(0) {}
     SerialState serialState;
     int8_t length;
     int8_t received;
-    int8_t to_id;
+
+    IdType id_type;
+    uint8_t lora_id;
+    uint8_t esp_now_id[6];
 
     Msgbuf mb;
 

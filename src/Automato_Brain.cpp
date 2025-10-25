@@ -154,15 +154,297 @@ AutomatoResult Automato::sendRequest(const uint8_t *mac_dest, Msgbuf &mb) {
   */
 }
 
-bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb) {
-    uint8_t len = sizeof(mb.buf);
-    mb.payload.f = 0;
-    if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id)) {
-        return true;
-    } else {
-        return false;
+// bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb) {
+//     uint8_t len = sizeof(mb.buf);
+//     mb.payload.f = 0;
+//     if (rhmesh.recvfromAckTimeout(mb.buf, &len, 1000, &from_id)) {
+//         return true;
+//     } else {
+//         return false;
+//     }
+// }
+
+AutomatoResult Automato::handleEspNowMessage(const uint8_t* from_mac, Msgbuf &mb)
+{
+    handleMessage(mb);
+    return sendReply(from_mac, mb.payload);
+}
+
+AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t *to_id, Msgbuf &mb)
+{
+    uint8_t baseMac[6];
+    esp_err_t ret = esp_wifi_get_mac(WIFI_IF_STA, baseMac);
+    if (ret == ESP_OK) {
+        if (memcmp(baseMac, to_id, 6) == 0)
+        {
+            handleMessage(mb);
+            return AutomatoResult(rc_ok);
+        }
+        else
+        {
+            // forward to another automato!
+            return sendRequest(to_id, mb);
+        }
+    }
+    else
+    {
+        return AutomatoResult(rc_esp_now_error);
     }
 }
+
+
+void writeEspNowSerialMessage(uint8_t *from_id, Msgbuf &mb)
+{
+    uint8_t ps = payloadSize(mb.payload);
+    Serial.write('e');       // 'm' for message
+    for (int i = 0; i++; i<6)
+    {
+        Serial.write(*(from_id + i));   // from which automato.
+    }
+    Serial.write(ps);        // payload length
+    Serial.write(mb.buf, ps);
+}
+
+void writeLoraSerialMessage(uint8_t from_id, Msgbuf &mb)
+{
+    uint8_t ps = payloadSize(mb.payload);
+    Serial.write('l');       // 'm' for message
+    Serial.write(from_id);   // from which automato.
+    Serial.write(ps);        // payload length
+    Serial.write(mb.buf, ps);
+}
+
+
+void Automato::handleMessage(Msgbuf &mb)
+{
+    switch (mb.payload.type) {
+        case pt_readpin:
+            if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
+                bool val = digitalRead(mb.payload.pin);
+                setup_readpinreply(mb.payload, mb.payload.pin, val);
+                return;
+            } else {
+                // failed, invalid address.
+                setup_fail(mb.payload, rc_invalid_pin_number);
+                return;
+            };
+        case pt_pinmode:
+            if (this->allowRemotePinOutputs) {
+                if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40)
+{ pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
+                    setup_ack(mb.payload);
+                    return;
+                } else {
+                    // failed, invalid address.
+                    setup_fail(mb.payload, rc_invalid_pin_number);
+                    return;
+                };
+            } else
+            {
+                // failed, pin ops not allowed.
+                setup_fail(mb.payload, rc_operation_forbidden);
+                return;
+            }
+        case pt_writepin:
+            if (this->allowRemotePinOutputs) {
+                if (0 <= mb.payload.pinval.pin &&  mb.payload.pinval.pin < 40) {
+                    if (mb.payload.pinval.state == 0) {
+                        digitalWrite(mb.payload.pinval.pin, LOW);
+                        setup_ack(mb.payload);
+                        return;
+                    } else if (mb.payload.pinval.state == 1) {
+                        digitalWrite(mb.payload.pinval.pin, HIGH);
+                        setup_ack(mb.payload);
+                        return;
+                    }
+                } else {
+                    // failed, invalid address.
+                    setup_fail(mb.payload, rc_invalid_pin_number);
+                    return;
+                };
+            } else {
+                // failed, pin ops not allowed.
+                setup_fail(mb.payload, rc_operation_forbidden);
+                return;
+            }
+        case pt_readanalog:
+            if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
+                int val = analogRead(mb.payload.pin);
+                setup_readanalogreply(mb.payload, mb.payload.pin, val);
+                return;
+            } else {
+                // failed, invalid address.
+                setup_fail(mb.payload, rc_invalid_pin_number);
+                return;
+            };
+        case pt_readmem:
+            // range check.
+            if (mb.payload.readmem.address >= this->datalen) {
+                // failed, invalid address.
+                setup_fail(mb.payload, rc_invalid_mem_address);
+                return;
+            }
+            else if (mb.payload.readmem.address + mb.payload.readmem.length >
+this->datalen) {
+                // failed, invalid length.
+                setup_fail(mb.payload, rc_invalid_mem_length);
+                return;
+            } else {
+                // build reply and send.
+                setup_readmemreply(mb.payload,
+                    mb.payload.readmem.length,
+                    databuf + mb.payload.readmem.address);
+                return;
+            };
+        case pt_writemem:
+            // range check.
+            if (mb.payload.readmem.address >= this->datalen) {
+                // failed, invalid address.
+                setup_fail(mb.payload, rc_invalid_mem_address);
+                return;
+            }
+            else if (mb.payload.readmem.address + mb.payload.readmem.length >=
+this->datalen) {
+                // failed, invalid length.
+                setup_fail(mb.payload, rc_invalid_mem_length);
+                return;
+            } else {
+                memcpy(this->databuf + mb.payload.writemem.address,
+                    mb.payload.writemem.data,
+                    mb.payload.writemem.length);
+                setup_ack(mb.payload);
+                return;
+            };
+        case pt_readinfo:
+            setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen,
+fieldCount); return; case pt_readhumidity: readTempHumidity();
+            setup_readhumidityreply(mb.payload, getHumidity());
+            return;
+        case pt_readtemperature:
+            readTempHumidity();
+            setup_readtemperaturereply(mb.payload, getTemperature());
+            return;
+        case pt_readfield:
+            if (mb.payload.readfield.fieldindex < this->fieldCount) {
+                MapField *mf = (MapField*)(memoryMap +
+mb.payload.readfield.fieldindex * sizeof(MapField));
+                setup_readfieldreply(mb.payload,
+mb.payload.readfield.fieldindex, *mf); } else { setup_fail(mb.payload,
+rc_invalid_mapfield_index);
+            }
+            return;
+        // error!  These should only be received in response to a request.
+        case pt_readhumidityreply:
+        case pt_readtemperaturereply:
+        case pt_readmemreply:
+        case pt_readinforeply:
+        default:
+            // failed, unsupported message type.
+            setup_fail(mb.payload, rc_invalid_message_type);
+            return;
+    };
+}
+
+
+AutomatoResult Automato::sendReply(const uint8_t* dest_mac, Payload &p)
+{
+    esp_err_t rc;
+    rc =
+        esp_now_send(dest_mac, (uint8_t *)&p, payloadSize(p));
+    if (rc != ESP_OK) {
+        return AutomatoResult(rc_esp_now_error);
+    }
+
+    return AutomatoResult(rc_ok);
+}
+
+// receives and handles remote control messages.
+AutomatoResult Automato::doSerial()
+{
+    if (serialReader.read()) {
+        do
+        {
+            switch (serialReader.id_type) {
+                case Lora: {
+                    handleLoraSerialMessage(serialReader.lora_id, serialReader.mb);
+                    // write the response back through serial
+                    writeLoraSerialMessage(serialReader.lora_id, serialReader.mb);
+                        
+                    }
+                case EspNow: {
+                    handleEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                    // write the response back through serial
+                    writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                        
+                    }
+            }
+
+        } while (serialReader.read());
+        return AutomatoResult(rc_ok);
+    }
+    else
+    {
+        return AutomatoResult(rc_no_message_received);
+    }
+}
+
+AutomatoResult Automato::handleLoraSerialMessage(const uint8_t to_id, Msgbuf &mb)
+{
+    // TODO actual error
+    return AutomatoResult(rc_invalid_rh_router_error);
+    // if (to_id == rhmesh.thisAddress())
+    // {
+    //     handleMessage(mb);
+    //     return AutomatoResult(rc_ok);
+    // }
+    // else
+    // {
+    //     // forward to another automato!
+    //     return sendRequest(to_id, mb);
+    // }
+}
+
+// AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t* to_id, Msgbuf &mb)
+// {
+//     if (memcmp(to_id, this.macAddress(), 6) == 0)
+//     {
+//         handleMessage(mb);
+//         return AutomatoResult(rc_ok);
+//     }
+//     else
+//     {
+//         // forward to another automato!
+//         return sendRequest(to_id, mb);
+//     }
+// }
+
+
+
+// bool Automato::receiveSerialMessage()
+// {
+//     return serialReader.read();
+// }
+
+
+// void writeLoraSerialMessage(uint8_t from_id, Msgbuf &mb)
+// {
+//     uint8_t ps = payloadSize(mb.payload);
+//     Serial.write('m');       // 'm' for message
+//     Serial.write(from_id);   // from which automato.
+//     Serial.write(ps);        // payload length
+//     Serial.write(mb.buf, ps);
+// }
+
+// void writeEspNowSerialMessage(uint8_t* from_id, Msgbuf &mb)
+// {
+//     uint8_t ps = payloadSize(mb.payload);
+//     Serial.write('m');       // 'm' for message
+//     Serial.write(from_id);   // from which automato.
+//     Serial.write(ps);        // payload length
+//     Serial.write(mb.buf, ps);
+// }
+
+
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
@@ -354,11 +636,6 @@ sizeof(RemoteInfo)); return AutomatoResult(rc_ok);
         return ar;
 }
 
-AutomatoResult Automato::sendReply(uint8_t network_id, Payload &p)
-{
-    return arFromRc(rhmesh.sendtoWait((uint8_t*)&p, payloadSize(p),
-network_id));
-}
 
 bool Automato::receiveMessage(uint8_t &from_id, Msgbuf &mb)
 {
@@ -404,137 +681,6 @@ void writeSerialMessage(uint8_t from_id, Msgbuf &mb)
     Serial.write(mb.buf, ps);
 }
 
-
-void Automato::handleMessage(Msgbuf &mb)
-{
-    switch (mb.payload.type) {
-        case pt_readpin:
-            if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
-                bool val = digitalRead(mb.payload.pin);
-                setup_readpinreply(mb.payload, mb.payload.pin, val);
-                return;
-            } else {
-                // failed, invalid address.
-                setup_fail(mb.payload, rc_invalid_pin_number);
-                return;
-            };
-        case pt_pinmode:
-            if (this->allowRemotePinOutputs) {
-                if (0 <= mb.payload.pinmode.pin &&  mb.payload.pinmode.pin < 40)
-{ pinMode(mb.payload.pinmode.pin, mb.payload.pinmode.mode);
-                    setup_ack(mb.payload);
-                    return;
-                } else {
-                    // failed, invalid address.
-                    setup_fail(mb.payload, rc_invalid_pin_number);
-                    return;
-                };
-            } else
-            {
-                // failed, pin ops not allowed.
-                setup_fail(mb.payload, rc_operation_forbidden);
-                return;
-            }
-        case pt_writepin:
-            if (this->allowRemotePinOutputs) {
-                if (0 <= mb.payload.pinval.pin &&  mb.payload.pinval.pin < 40) {
-                    if (mb.payload.pinval.state == 0) {
-                        digitalWrite(mb.payload.pinval.pin, LOW);
-                        setup_ack(mb.payload);
-                        return;
-                    } else if (mb.payload.pinval.state == 1) {
-                        digitalWrite(mb.payload.pinval.pin, HIGH);
-                        setup_ack(mb.payload);
-                        return;
-                    }
-                } else {
-                    // failed, invalid address.
-                    setup_fail(mb.payload, rc_invalid_pin_number);
-                    return;
-                };
-            } else {
-                // failed, pin ops not allowed.
-                setup_fail(mb.payload, rc_operation_forbidden);
-                return;
-            }
-        case pt_readanalog:
-            if (0 <= mb.payload.pin &&  mb.payload.pin < 40) {
-                int val = analogRead(mb.payload.pin);
-                setup_readanalogreply(mb.payload, mb.payload.pin, val);
-                return;
-            } else {
-                // failed, invalid address.
-                setup_fail(mb.payload, rc_invalid_pin_number);
-                return;
-            };
-        case pt_readmem:
-            // range check.
-            if (mb.payload.readmem.address >= this->datalen) {
-                // failed, invalid address.
-                setup_fail(mb.payload, rc_invalid_mem_address);
-                return;
-            }
-            else if (mb.payload.readmem.address + mb.payload.readmem.length >
-this->datalen) {
-                // failed, invalid length.
-                setup_fail(mb.payload, rc_invalid_mem_length);
-                return;
-            } else {
-                // build reply and send.
-                setup_readmemreply(mb.payload,
-                    mb.payload.readmem.length,
-                    databuf + mb.payload.readmem.address);
-                return;
-            };
-        case pt_writemem:
-            // range check.
-            if (mb.payload.readmem.address >= this->datalen) {
-                // failed, invalid address.
-                setup_fail(mb.payload, rc_invalid_mem_address);
-                return;
-            }
-            else if (mb.payload.readmem.address + mb.payload.readmem.length >=
-this->datalen) {
-                // failed, invalid length.
-                setup_fail(mb.payload, rc_invalid_mem_length);
-                return;
-            } else {
-                memcpy(this->databuf + mb.payload.writemem.address,
-                    mb.payload.writemem.data,
-                    mb.payload.writemem.length);
-                setup_ack(mb.payload);
-                return;
-            };
-        case pt_readinfo:
-            setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen,
-fieldCount); return; case pt_readhumidity: readTempHumidity();
-            setup_readhumidityreply(mb.payload, getHumidity());
-            return;
-        case pt_readtemperature:
-            readTempHumidity();
-            setup_readtemperaturereply(mb.payload, getTemperature());
-            return;
-        case pt_readfield:
-            if (mb.payload.readfield.fieldindex < this->fieldCount) {
-                MapField *mf = (MapField*)(memoryMap +
-mb.payload.readfield.fieldindex * sizeof(MapField));
-                setup_readfieldreply(mb.payload,
-mb.payload.readfield.fieldindex, *mf); } else { setup_fail(mb.payload,
-rc_invalid_mapfield_index);
-            }
-            return;
-        // error!  These should only be received in response to a request.
-        case pt_readhumidityreply:
-        case pt_readtemperaturereply:
-        case pt_readmemreply:
-        case pt_readinforeply:
-        default:
-            // failed, unsupported message type.
-            setup_fail(mb.payload, rc_invalid_message_type);
-            return;
-    };
-}
-
 // receives and handles remote control messages.
 AutomatoResult Automato::doRemoteControl()
 {
@@ -547,29 +693,6 @@ AutomatoResult Automato::doRemoteControl()
     }
 }
 
-
-// receives and handles remote control messages.
-AutomatoResult Automato::doSerial()
-{
-    if (receiveSerialMessage()) {
-        do
-        {
-            handleSerialMessage(serialReader.to_id, serialReader.mb);
-            // write the response back through serial
-            writeSerialMessage(serialReader.to_id, serialReader.mb);
-        } while (receiveSerialMessage());
-        return AutomatoResult(rc_ok);
-    }
-    else
-    {
-        return AutomatoResult(rc_no_message_received);
-    }
-}
-
-bool Automato::receiveSerialMessage()
-{
-    return serialReader.read();
-}
 
 void Automato::initEspNow(void) {
   WiFi.mode(WIFI_STA);
