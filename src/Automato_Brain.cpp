@@ -174,14 +174,20 @@ AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t *to_id, Msgbuf 
 {
     uint8_t baseMac[6];
     esp_err_t ret = esp_wifi_get_mac(WIFI_IF_STA, baseMac);
+    // Serial.print("bn:");
+    // for (int i = 0; i < 6; ++i) {
+    //     Serial.print(baseMac[i]);
+    // }
     if (ret == ESP_OK) {
         if (memcmp(baseMac, to_id, 6) == 0)
         {
+            // Serial.print("yeah");
             handleMessage(mb);
             return AutomatoResult(rc_ok);
         }
         else
         {
+            // Serial.print("nope");
             // forward to another automato!
             return sendRequest(to_id, mb);
         }
@@ -197,7 +203,7 @@ void writeEspNowSerialMessage(uint8_t *from_id, Msgbuf &mb)
 {
     uint8_t ps = payloadSize(mb.payload);
     Serial.write('e');       // 'm' for message
-    for (int i = 0; i++; i<6)
+    for (int i = 0; i<6; i++)
     {
         Serial.write(*(from_id + i));   // from which automato.
     }
@@ -316,8 +322,11 @@ this->datalen) {
                 return;
             };
         case pt_readinfo:
-            setup_readinforeply(mb.payload, protoVersion, macAddress(), datalen,
-fieldCount); return; case pt_readhumidity: readTempHumidity();
+            setup_readinforeply(mb.payload, protoVersion,
+                                macAddress(), datalen, fieldCount);
+            return;
+        case pt_readhumidity:
+            readTempHumidity();
             setup_readhumidityreply(mb.payload, getHumidity());
             return;
         case pt_readtemperature:
@@ -326,18 +335,22 @@ fieldCount); return; case pt_readhumidity: readTempHumidity();
             return;
         case pt_readfield:
             if (mb.payload.readfield.fieldindex < this->fieldCount) {
-                MapField *mf = (MapField*)(memoryMap +
-mb.payload.readfield.fieldindex * sizeof(MapField));
-                setup_readfieldreply(mb.payload,
-mb.payload.readfield.fieldindex, *mf); } else { setup_fail(mb.payload,
-rc_invalid_mapfield_index);
+                MapField *mf = (MapField*)(memoryMap + mb.payload.readfield.fieldindex * sizeof(MapField));
+                setup_readfieldreply(mb.payload, mb.payload.readfield.fieldindex, *mf);
+            } else {
+                setup_fail(mb.payload, rc_invalid_mapfield_index);
             }
             return;
         // error!  These should only be received in response to a request.
-        case pt_readhumidityreply:
-        case pt_readtemperaturereply:
+        case pt_ack:
+        case pt_fail:
+        case pt_readpinreply:
         case pt_readmemreply:
         case pt_readinforeply:
+        case pt_readhumidityreply:
+        case pt_readtemperaturereply:
+        case pt_readanalogreply:
+        case pt_readfieldreply:
         default:
             // failed, unsupported message type.
             setup_fail(mb.payload, rc_invalid_message_type);
@@ -364,16 +377,30 @@ AutomatoResult Automato::doSerial()
     if (serialReader.read()) {
         do
         {
+            // Serial.print("idtype:");
+            // Serial.println(serialReader.id_type);
             switch (serialReader.id_type) {
                 case Lora: {
+                    // Serial.print("lora_id:");
+                    // Serial.println(serialReader.lora_id);
                     handleLoraSerialMessage(serialReader.lora_id, serialReader.mb);
                     // write the response back through serial
                     writeLoraSerialMessage(serialReader.lora_id, serialReader.mb);
                         
                     }
                 case EspNow: {
+                    // Serial.print("esp_now_id:");
+                    // Serial.print(serialReader.esp_now_id[0]);
+                    // Serial.print(serialReader.esp_now_id[1]);
+                    // Serial.print(serialReader.esp_now_id[2]);
+                    // Serial.print(serialReader.esp_now_id[3]);
+                    // Serial.print(serialReader.esp_now_id[4]);
+                    // Serial.print(serialReader.esp_now_id[5]);
+                    // printPayload(serialReader.mb.payload);
                     handleEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
                     // write the response back through serial
+                    // Serial.print("tp");
+                    // printPayload(serialReader.mb.payload);
                     writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
                         
                     }

@@ -24,21 +24,25 @@ bool SerialReader::read()
                 serialState = Length;
                 break;
             case EspNowId:
-                serialState = Length;
-                if (received < 6)
+                // Serial.print("id");
+                // Serial.println(i);
+                if (received < 5)
                 {
-                  esp_now_id[received] = i;
+                    esp_now_id[received] = i;
                     received++;
                 }
                 else
                 {
-                    esp_now_id[received] = i; received = 0;
+                    esp_now_id[received] = i;
                     serialState = Length;
                 }
                 break;
             case Length:
                 length = i;
+                // Serial.print("len");
+                // Serial.print(i);
                 serialState = Msg;
+                received = 0;
                 if (length == 0)
                 {
                     serialState = Ready;
@@ -48,6 +52,8 @@ bool SerialReader::read()
             case Msg:
                 if (received < length)
                 {
+                    // Serial.print("rec");
+                    // Serial.print(i);
                     mb.buf[received] = i;
                     received++;
                 }
@@ -58,7 +64,11 @@ bool SerialReader::read()
                 }
                 break;
         }
+        // Serial.print("av");
+        // Serial.println(Serial.available());
     }
+
+    // Serial.println("readover");
 
     // no message ready yet!
     return false;

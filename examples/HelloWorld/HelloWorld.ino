@@ -31,20 +31,20 @@ void loop() {
 
 void updateLCD() {
 
-    automato.clearScreen();
+    // automato.clearScreen();
 
-    screen.println("Hello world!");
+    // screen.println("Hello world!");
 
-    screen.print("Temperature = ");
-    screen.print(automato.getTemperature());
-    screen.println(" F");
+    // screen.print("Temperature = ");
+    // screen.print(automato.getTemperature());
+    // screen.println(" F");
 
-    screen.print("Humidity = ");
-    screen.print(automato.getHumidity());
-    screen.println("%");
+    // screen.print("Humidity = ");
+    // screen.print(automato.getHumidity());
+    // screen.println("%");
 
-    screen.print("ID = ");
-    screen.println(automato.macAddress());
+    // screen.print("ID = ");
+    // screen.println(automato.macAddress());
 
 }
 

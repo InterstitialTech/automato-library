@@ -1,8 +1,10 @@
-To build these tests, first:
+To build these tests you need the 'testduino' submodule.
+
+So first,
 
 ```
-$ cd tests/
-$ git clone https://github.com/InterstitialTech/testduino.git
+$ git submodule init
+$ git submodule update
 ```
 
 Then build the tests with `./build.sh`.   Then run the resulting executable, `./tests`.

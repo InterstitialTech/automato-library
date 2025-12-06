@@ -17,7 +17,7 @@ void readMsg(const char *dir, Msgbuf &mb, const char *fname)
     s += fname;
 
     FILE * filp = fopen(s.c_str(), "rb");
-    int bytes_read = fread(mb.buf, sizeof(char), RH_RF95_MAX_MESSAGE_LEN, filp);
+    int bytes_read = fread(mb.buf, sizeof(char), MAX_MESSAGE_LEN, filp);
 
     bool debug = false;
     if (debug) 

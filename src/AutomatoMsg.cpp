@@ -165,6 +165,7 @@ void setup_readinforeply(Payload &p,
     uint16_t datalen,
     uint16_t fieldcount)
 {
+    // Serial.print("rdnfo");
     p.type = pt_readinforeply;
     p.remoteinfo.protoversion = protoversion;
     p.remoteinfo.macAddress = macAddress;
