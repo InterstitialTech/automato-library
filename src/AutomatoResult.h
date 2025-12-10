@@ -3,6 +3,7 @@
 
 enum ResultCode {
     rc_ok,
+    rc_forwarded,
     rc_no_message_received,
     rc_esp_now_error,
     rc_invalid_message_type,

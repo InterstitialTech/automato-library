@@ -4,6 +4,8 @@ const char *resultString(ResultCode rc) {
     switch (rc) {
         case rc_ok:
             return "ok";
+        case rc_forwarded:
+            return "forwarded";
         case rc_no_message_received:
             return "no message received";
         case rc_esp_now_error:

@@ -2,6 +2,7 @@
 
 #include <AutomatoMsg.h>
 #include <Automato_Brain.h>
+#include <AutomatoResult.h>
 #include <Esp.h>
 
 Msgbuf mb;
@@ -205,6 +206,7 @@ AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t *to_id, Msgbuf 
     //     Serial.print(baseMac[i]);
     // }
     if (ret == ESP_OK) {
+
         if (memcmp(baseMac, to_id, 6) == 0)
         {
             // Serial.print("yeah");
@@ -213,12 +215,25 @@ AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t *to_id, Msgbuf 
         }
         else
         {
+            // if not peered, peer.
+            // TODO deal with too many peers
+            if (!esp_now_is_peer_exist(serialReader.esp_now_id)) {
+                // Serial.println("peering");
+                peerEspNow(serialReader.esp_now_id);
+            }
+
             // Serial.print("forwarding");
             for (int i = 0; i < 6; ++i) {
                 Serial.write(to_id[i]);
             }
             // forward to another automato!
-            return sendRequest(to_id, mb);
+            AutomatoResult rc = sendRequest(to_id, mb);
+            if (rc.resultCode() == rc_ok) {
+               return AutomatoResult(rc_forwarded);
+            }
+            else {
+                return rc;
+            } 
         }
     }
     else
@@ -429,13 +444,6 @@ AutomatoResult Automato::doSerial()
                     }
                 case EspNow: {
 
-                    // if not peered, peer.
-                    // TODO deal with too many peers
-                    if (!esp_now_is_peer_exist(serialReader.esp_now_id)) {
-                        // Serial.println("peering");
-                        peerEspNow(serialReader.esp_now_id);
-                    }
-                        
                     // Serial.print("esp_now_id:");
                     // Serial.print(serialReader.esp_now_id[0]);
                     // Serial.print(serialReader.esp_now_id[1]);
@@ -444,7 +452,25 @@ AutomatoResult Automato::doSerial()
                     // Serial.print(serialReader.esp_now_id[4]);
                     // Serial.print(serialReader.esp_now_id[5]);
                     // printPayload(serialReader.mb.payload);
-                    handleEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                    AutomatoResult rc = handleEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+
+                    switch (rc.resultCode()) {
+                        case rc_ok:
+                            // Serial.print("handled");
+                            writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                            break;
+
+                        case rc_forwarded:
+                            // Serial.print("forwarded");
+                            // if forwarded return nothing.  reply will be returned
+                            // in the callback
+                            break;
+                        
+                        default:
+                            // Serial.print("error");
+                            setup_fail(serialReader.mb.payload, rc.resultCode()); 
+                            writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                    };
 
                     // We don't have a response until the callback,
                     // so write nothing!
