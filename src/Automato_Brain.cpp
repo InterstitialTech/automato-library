@@ -27,14 +27,17 @@ void Automato::init(float frequency, uint8_t power) {
     pinMode(PIN_LED, OUTPUT);
 
     // SHTC3
-    // shtc3.begin();   // needed?
+    shtc3.begin();   // needed?
 }
 
 void Automato::readTempHumidity(void) {
-    Serial.println(" shtc3.update();");
+    // Serial.println(" shtc3.update();");
     shtc3.update();
+    // Serial.println(" post shtc3.update();");
     temperature = shtc3.toDegF();
+    // Serial.println(" post toDegF ");
     humidity = shtc3.toPercent();
+    // Serial.println(" post shtc vals ");
 }
 
 float Automato::getTemperature(void) { return temperature; }
@@ -183,7 +186,7 @@ AutomatoResult Automato::handleEspNowMessage(const uint8_t* from_mac, Msgbuf &mb
 {
     handleMessage(mb);
 
-    Serial.println("handled");
+    // Serial.println("handled");
     // need to peer?
     if (!esp_now_is_peer_exist(from_mac)) {
         // Serial.println("peering");
@@ -351,13 +354,16 @@ this->datalen) {
                                 efuseMacAddress(), datalen, fieldCount);
             return;
         case pt_readhumidity:
-            Serial.println("readTempHumidity();");
+            // Serial.println("readTempHumidity();");
             readTempHumidity();
-            Serial.println("post readTempHumidity();");
+            // Serial.println("post readTempHumidity();");
             setup_readhumidityreply(mb.payload, getHumidity());
             return;
         case pt_readtemperature:
+            // Serial.println("readTempHumidity();");
             readTempHumidity();
+            // Serial.println("post readTempHumidity();");
+            // Serial.println(getTemperature());
             setup_readtemperaturereply(mb.payload, getTemperature());
             return;
         case pt_readfield:
@@ -439,8 +445,10 @@ AutomatoResult Automato::doSerial()
                     // Serial.print(serialReader.esp_now_id[5]);
                     // printPayload(serialReader.mb.payload);
                     handleEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+
+                    // We don't have a response until the callback,
+                    // so write nothing!
                     // write the response back through serial
-                    // Serial.print("tp");
                     // printPayload(serialReader.mb.payload);
                     // writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
                         
