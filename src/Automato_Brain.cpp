@@ -31,6 +31,7 @@ void Automato::init(float frequency, uint8_t power) {
 }
 
 void Automato::readTempHumidity(void) {
+    Serial.println(" shtc3.update();");
     shtc3.update();
     temperature = shtc3.toDegF();
     humidity = shtc3.toPercent();
@@ -40,7 +41,8 @@ float Automato::getTemperature(void) { return temperature; }
 
 float Automato::getHumidity(void) { return humidity; }
 
-uint64_t Automato::macAddress(void) { return ESP.getEfuseMac(); }
+uint64_t Automato::efuseMacAddress(void) { return ESP.getEfuseMac(); }
+uint8_t* Automato::macAddress() { return espNowMacAddress; }
 
 void Automato::initEspNow(void) {
     WiFi.mode(WIFI_STA);
@@ -48,7 +50,16 @@ void Automato::initEspNow(void) {
         Serial.println("Error initializing ESP-NOW");
         return;
     }
+
+    esp_err_t ret = esp_wifi_get_mac(WIFI_IF_STA, espNowMacAddress);
+    if (ret != ESP_OK) {
+        Serial.println("Error retreivine ESP-NOW mac");
+        return;
+    }
+
 }
+
+// void Automato::peer
 
 void Automato::peerEspNow(const uint8_t *mac_dest) {
     memcpy(this->espnow_peer_info.peer_addr, mac_dest, 6);
@@ -98,7 +109,8 @@ void Automato::printMacAddressEspNow(void) {
 AutomatoResult Automato::sendRequest(const uint8_t *mac_dest, Msgbuf &mb) {
     esp_err_t rc;
 
-    if (payloadSize(mb.payload) > -250) {
+    // TODO: 250, wat
+    if (payloadSize(mb.payload) > 250) {
         return AutomatoResult(rc_invalid_mem_length);
     }
 
@@ -107,6 +119,8 @@ AutomatoResult Automato::sendRequest(const uint8_t *mac_dest, Msgbuf &mb) {
     rc =
         esp_now_send(mac_dest, (uint8_t *)&mb.payload, payloadSize(mb.payload));
     if (rc != ESP_OK) {
+        Serial.print("esperr");
+        Serial.print(rc);
         return AutomatoResult(rc_esp_now_error);
     }
 
@@ -124,6 +138,7 @@ AutomatoResult Automato::sendRequest(const uint8_t *mac_dest, Msgbuf &mb) {
     //     }
     // }
 
+    // Serial.print("sent");
     return AutomatoResult(rc_ok);
 
     /*
@@ -167,6 +182,14 @@ AutomatoResult Automato::sendRequest(const uint8_t *mac_dest, Msgbuf &mb) {
 AutomatoResult Automato::handleEspNowMessage(const uint8_t* from_mac, Msgbuf &mb)
 {
     handleMessage(mb);
+
+    Serial.println("handled");
+    // need to peer?
+    if (!esp_now_is_peer_exist(from_mac)) {
+        // Serial.println("peering");
+        peerEspNow(from_mac);
+    }
+    
     return sendReply(from_mac, mb.payload);
 }
 
@@ -187,7 +210,10 @@ AutomatoResult Automato::handleEspNowSerialMessage(const uint8_t *to_id, Msgbuf 
         }
         else
         {
-            // Serial.print("nope");
+            // Serial.print("forwarding");
+            for (int i = 0; i < 6; ++i) {
+                Serial.write(to_id[i]);
+            }
             // forward to another automato!
             return sendRequest(to_id, mb);
         }
@@ -219,7 +245,6 @@ void writeLoraSerialMessage(uint8_t from_id, Msgbuf &mb)
     Serial.write(ps);        // payload length
     Serial.write(mb.buf, ps);
 }
-
 
 void Automato::handleMessage(Msgbuf &mb)
 {
@@ -323,10 +348,12 @@ this->datalen) {
             };
         case pt_readinfo:
             setup_readinforeply(mb.payload, protoVersion,
-                                macAddress(), datalen, fieldCount);
+                                efuseMacAddress(), datalen, fieldCount);
             return;
         case pt_readhumidity:
+            Serial.println("readTempHumidity();");
             readTempHumidity();
+            Serial.println("post readTempHumidity();");
             setup_readhumidityreply(mb.payload, getHumidity());
             return;
         case pt_readtemperature:
@@ -362,9 +389,15 @@ this->datalen) {
 AutomatoResult Automato::sendReply(const uint8_t* dest_mac, Payload &p)
 {
     esp_err_t rc;
+    Serial.print("sending to");
+    for (int i = 0; i < 6; ++i) {
+        Serial.println(dest_mac[i]);
+    };
     rc =
         esp_now_send(dest_mac, (uint8_t *)&p, payloadSize(p));
     if (rc != ESP_OK) {
+        Serial.print("senderr");
+        Serial.println(rc);
         return AutomatoResult(rc_esp_now_error);
     }
 
@@ -389,6 +422,14 @@ AutomatoResult Automato::doSerial()
                         
                     }
                 case EspNow: {
+
+                    // if not peered, peer.
+                    // TODO deal with too many peers
+                    if (!esp_now_is_peer_exist(serialReader.esp_now_id)) {
+                        // Serial.println("peering");
+                        peerEspNow(serialReader.esp_now_id);
+                    }
+                        
                     // Serial.print("esp_now_id:");
                     // Serial.print(serialReader.esp_now_id[0]);
                     // Serial.print(serialReader.esp_now_id[1]);
@@ -401,7 +442,7 @@ AutomatoResult Automato::doSerial()
                     // write the response back through serial
                     // Serial.print("tp");
                     // printPayload(serialReader.mb.payload);
-                    writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
+                    // writeEspNowSerialMessage(serialReader.esp_now_id, serialReader.mb);
                         
                     }
             }

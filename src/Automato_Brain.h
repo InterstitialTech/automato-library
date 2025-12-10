@@ -23,7 +23,10 @@ private:
   SerialReader serialReader;
 
   uint8_t espnow_buf[250];
+  // TODO: make this local struct, not member?
   esp_now_peer_info_t espnow_peer_info;
+
+  uint8_t espNowMacAddress[6];
 
 public:
   // Simplest Automato constructor.
@@ -50,7 +53,8 @@ public:
   float getTemperature();
   float getHumidity();
 
-  static uint64_t macAddress();
+  static uint64_t efuseMacAddress();
+  uint8_t* macAddress();
 
   // receive and handle serial messages.
   AutomatoResult doSerial();
